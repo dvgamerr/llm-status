@@ -366,3 +366,29 @@ References:
   cross-build, and `claude-status preview` (pixels unchanged — the pixelui
   edit is provider selection, not rendering). `go test -race` still runs only
   in Linux CI; this host has no GCC.
+
+### 2026-08-29 (follow-up) — the console window was a leftover Scheduled Task
+
+- The console suppression above did not stop the flashing window on this
+  machine, and the reason was machine state, not code: a Scheduled Task named
+  `claude-status-relay` from before the Windows Service era was still
+  registered and still running. `install-windows.ps1` switched the relay to a
+  service but never removed the task it replaced, so both were live at once —
+  the service (session 0, invisible) and the task (`LogonType: Interactive`,
+  session 1, i.e. the actual desktop). The task's every `ssh` delivery opened
+  a console window on screen, and both processes wrote the same `relay.log`
+  and polled the same state directory.
+- Worse, the task launched the *installed* binary at
+  `%LOCALAPPDATA%\Programs\claude-status\claude-status.exe`, which was months
+  old. That path is also what `statusLine`, all six hooks, and the Codex
+  `notify` entry invoke — so rebuilding only `%USERPROFILE%\go\bin` (which is
+  where `go install` puts it, and what `service install` had registered) left
+  every hook running stale code. When checking whether a fix is live on
+  Windows, check which of those two binaries the failing caller actually
+  runs.
+- Fixed on this host by unregistering the task, building once and copying the
+  same binary to both paths, and re-running `service install` from the
+  `%LOCALAPPDATA%\Programs` copy so the service, hooks, statusLine, and Codex
+  notify all point at one file. `install-windows.ps1` now unregisters the
+  legacy task (and stops a desktop-session relay holding the binary open)
+  before it replaces the binary, so an upgrade cleans this up on its own.

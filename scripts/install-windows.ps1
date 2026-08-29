@@ -102,6 +102,22 @@ elseif ($ExistingNotify.Count -gt 0) {
     }
 }
 
+# Installs from before the Windows Service era registered the relay as a
+# Scheduled Task of the same name, and nothing has ever removed it on
+# upgrade. That task runs with LogonType Interactive, so unlike the service
+# it lives in the desktop session and every ssh delivery it makes opens a
+# console window on screen; it also races the service for the same state
+# directory and log file. Clear it out before the binary is replaced, since
+# its running process would otherwise hold a lock on the file.
+$LegacyTask = Get-ScheduledTask -TaskName "claude-status-relay" -ErrorAction SilentlyContinue
+if ($LegacyTask) {
+    Get-CimInstance Win32_Process -Filter "Name='claude-status.exe'" |
+        Where-Object { $_.SessionId -ne 0 -and $_.CommandLine -like "* relay *" } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Unregister-ScheduledTask -TaskName "claude-status-relay" -Confirm:$false
+    Write-Host "removed legacy Scheduled Task: claude-status-relay"
+}
+
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 $StagedBinary = Join-Path $InstallDir ("claude-status." + [guid]::NewGuid().ToString("N") + ".exe")
 Copy-Item -LiteralPath $BinaryPath -Destination $StagedBinary
