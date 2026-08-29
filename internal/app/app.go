@@ -29,6 +29,7 @@ import (
 	"github.com/dvgamerr/claude-status/internal/systeminfo"
 	"github.com/dvgamerr/claude-status/internal/touch"
 	"github.com/dvgamerr/claude-status/internal/usage"
+	"github.com/dvgamerr/claude-status/internal/winconsole"
 )
 
 var (
@@ -434,6 +435,9 @@ func forwardNotification(ctx context.Context, program string, args []string, pay
 	commandArgs := append(append([]string{}, args...), payload)
 	// #nosec G204 -- the notifier is explicitly user-configured and argv is not shell-expanded.
 	command := exec.CommandContext(forwardCtx, program, commandArgs...)
+	// Codex fires this from its own background process; a console window
+	// for the forwarded notifier would just flash on Windows.
+	winconsole.SuppressChildConsole(command)
 	stderr := limitio.NewBuffer(limitio.DiagnosticLimit)
 	command.Stderr = stderr
 	if err := command.Run(); err != nil {

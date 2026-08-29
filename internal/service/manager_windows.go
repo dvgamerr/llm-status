@@ -115,6 +115,10 @@ func Install(cfg Config) error {
 			Description:  cfg.Description,
 			StartType:    mgr.StartAutomatic,
 			ErrorControl: mgr.ErrorNormal,
+			// Stated rather than left to the default so it is obvious this
+			// is never SERVICE_INTERACTIVE_PROCESS: the relay must not be
+			// able to put a console on the logged-in user's desktop.
+			ServiceType: windows.SERVICE_WIN32_OWN_PROCESS,
 		}, cfg.Args...)
 		if err != nil {
 			return fmt.Errorf("create service: %w", err)

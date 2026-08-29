@@ -10,6 +10,7 @@ import (
 
 	"github.com/dvgamerr/claude-status/internal/app"
 	"github.com/dvgamerr/claude-status/internal/service"
+	"github.com/dvgamerr/claude-status/internal/winconsole"
 )
 
 func main() {
@@ -18,6 +19,10 @@ func main() {
 	// immediately, so this can't wait for flag parsing or any other CLI
 	// setup. IsWindowsService is always false outside Windows.
 	if service.IsWindowsService() {
+		// A service has no interactive user, so any console the Service
+		// Control Manager handed this process is just a window flashing
+		// on someone's desktop at boot and on every recovery restart.
+		winconsole.HideServiceConsole()
 		err := service.RunAsService(app.RelayServiceName, func(ctx context.Context) error {
 			if code := app.Run(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); code != 0 {
 				return fmt.Errorf("claude-status exited with code %d", code)
@@ -29,6 +34,12 @@ func main() {
 		}
 		return
 	}
+
+	// Claude Code hooks fired from the VS Code extension host launch this
+	// binary from a parent that has no console of its own, so Windows
+	// allocates a fresh window per hook event. Hide those; a console
+	// inherited from a real shell stays visible.
+	winconsole.HideDetachedConsole()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

@@ -14,6 +14,7 @@ import (
 
 	"github.com/dvgamerr/claude-status/internal/limitio"
 	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/claude-status/internal/winconsole"
 )
 
 // DefaultRemoteBinary is the conventional Raspberry Pi installation path.
@@ -53,6 +54,9 @@ func SSH(ctx context.Context, host, remoteBinary string, snapshot model.Snapshot
 		"-o", "ConnectTimeout=3",
 		host, remoteBinary, "import",
 	)
+	// The relay runs unattended several times a minute; on Windows each
+	// ssh child would otherwise be handed its own console window.
+	winconsole.SuppressChildConsole(command)
 	command.Stdin = bytes.NewReader(data)
 	stderr := limitio.NewBuffer(limitio.DiagnosticLimit)
 	command.Stderr = stderr
