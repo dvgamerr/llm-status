@@ -193,6 +193,18 @@ the header's own omission of session identity.
   short-lived `/usage` or subagent CLI process writes a fresh real snapshot
   under `sessions\*.json`. In both cases the relay automatically selects and
   delivers the freshest Claude snapshot to `pilab`.
+- Since a hook-only VS Code snapshot has no numbers of its own but is the
+  newest one for the provider, both `relay.latestProviders` and
+  `pixelui.LatestProviders` now route through `model.LatestWithUsage`: the
+  newest snapshot still wins and keeps its own session identity, activity,
+  and `captured_at`, and every usage field it lacks (model, context, rate
+  limits, cost, effort, thinking) is backfilled from the newest snapshot of
+  the same provider that actually has them. Rate limits are account-wide, so
+  borrowing them across sessions reports the same quota either way. The donor
+  is deliberately not bounded by age: a rate window carries its own
+  `resets_at` and `limitLine` already draws a passed reset as expired,
+  so a stale donor degrades visibly instead of quietly showing an old
+  percentage as current.
 
 References:
 
@@ -311,3 +323,46 @@ References:
   Codex-served model families are priced differently, so the estimate is
   keyed by `snapshot.Model.ID`, not a single flat rate. `contextBlock` was
   deleted as dead code once this was its only remaining caller.
+
+### 2026-08-29 — dependency refresh, Windows console suppression, VS Code usage backfill
+
+- Updated every module dependency to its latest release (`go get -u ./...`
+  plus `go get -u tool`) and let staticcheck v0.8.1's own requirement pull the
+  `go` directive from 1.25.8 to 1.26.0. `pilab` runs go1.26.5; the Windows
+  host was upgraded to go1.27.0 partway through this pass. The directive
+  stays at 1.26.0 rather than tracking the newest toolchain so the Pi keeps
+  building natively instead of downloading a go1.27 toolchain of its own on
+  every rebuild.
+  Notable bumps: `golang.org/x/image` 0.44→0.45, `x/net` 0.57→0.58,
+  `x/text` 0.40→0.41, `charmbracelet/x/ansi` 0.10.1→0.11.8,
+  `BurntSushi/toml` and `xo/terminfo` off pseudo-versions onto real tags,
+  `x/vuln` 1.6→1.7, `honnef.co/go/tools` 0.7→0.8.1.
+- New `internal/winconsole` keeps Windows console windows off the screen
+  without giving up the console subsystem (which is what makes the binary
+  usable from a terminal and lets `install-windows.ps1` wait on
+  `service install` and read its exit code). `main()` calls
+  `HideServiceConsole` once SCM has confirmed a service process — a service
+  has no interactive user — and `HideDetachedConsole` otherwise, which hides
+  the console only when `GetConsoleProcessList` reports this process as its
+  sole owner. That is exactly the "Windows allocated a fresh window for this
+  launch" case (a hook fired by the VS Code extension host, an Explorer
+  double-click); a console inherited from PowerShell has at least two
+  attached processes and is left visible. `SuppressChildConsole` adds
+  `CREATE_NO_WINDOW` to the relay's ssh children and the forwarded Codex
+  notifier. `service install` also now states
+  `ServiceType: SERVICE_WIN32_OWN_PROCESS` explicitly rather than relying on
+  `mgr.CreateService`'s default, to document that this is never
+  `SERVICE_INTERACTIVE_PROCESS`.
+- New `internal/model/merge.go` (`HasUsage`, `WithUsageFrom`,
+  `LatestWithUsage`, plus `HasValues` on Context/RateLimits/Cost) fixes the
+  VS Code session showing `--` for every number — see the statusLine section
+  above for the selection rule and why the donor is not age-bounded.
+  `relay.latestProviders` and `pixelui.LatestProviders` both call it, so the
+  Pi's imported snapshot and any locally rendered dashboard agree.
+- Verification for this pass: `gofmt -l`, `go mod verify`, `go mod tidy
+  -diff`, `go vet ./...`, `go tool staticcheck ./...`, `go tool govulncheck
+  ./...` (no vulnerabilities), `go test -shuffle=on ./...`, coverage 94.6%
+  against the 80% floor, `GOOS=windows go vet ./...`, the linux/arm64
+  cross-build, and `claude-status preview` (pixels unchanged — the pixelui
+  edit is provider selection, not rendering). `go test -race` still runs only
+  in Linux CI; this host has no GCC.

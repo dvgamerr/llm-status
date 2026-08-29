@@ -333,3 +333,54 @@ func parseLogs(t *testing.T, buf *bytes.Buffer) []map[string]any {
 	}
 	return lines
 }
+
+// A Claude Code session running in the VS Code extension only ever gets an
+// `activity` hook write — statusLine never fires there — so its snapshot is
+// the newest one for the provider but carries no numbers. The Pi must still
+// receive that session's activity together with real usage figures.
+func TestSyncBackfillsUsageForHookOnlyVSCodeSession(t *testing.T) {
+	store := testStore(t)
+	now := time.Now()
+
+	usagePercentage, resetsAt := 35.0, now.Add(time.Hour).Unix()
+	terminal := model.Snapshot{
+		SchemaVersion: model.CurrentSchemaVersion,
+		Provider:      "claude",
+		Session:       model.Session{ID: "terminal"},
+		CapturedAt:    now.Add(-10 * time.Minute),
+		Model:         model.Model{ID: "claude-opus-5", DisplayName: "Opus 5"},
+		RateLimits: model.RateLimits{
+			SevenDay: model.RateWindow{UsedPercentage: &usagePercentage, ResetsAt: &resetsAt},
+		},
+		Activity: model.Activity{State: model.ActivityIdle, UpdatedAt: now.Add(-10 * time.Minute)},
+	}
+	if err := store.Save(terminal); err != nil {
+		t.Fatal(err)
+	}
+	saveSnapshot(t, store, "claude", "vscode", now, model.ActivityThinking)
+
+	var sent []model.Snapshot
+	relay, err := New(store, func(_ context.Context, snapshot model.Snapshot) error {
+		sent = append(sent, snapshot)
+		return nil
+	}, zerolog.Nop())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := relay.Sync(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(sent) != 1 {
+		t.Fatalf("sent %d snapshots, want 1", len(sent))
+	}
+	delivered := sent[0]
+	if delivered.Session.ID != "vscode" || delivered.Activity.State != model.ActivityThinking {
+		t.Fatalf("live VS Code session was displaced: %+v", delivered)
+	}
+	if delivered.Model.ID != "claude-opus-5" {
+		t.Fatalf("model was not backfilled: %+v", delivered.Model)
+	}
+	if got := delivered.RateLimits.SevenDay.UsedPercentage; got == nil || *got != usagePercentage {
+		t.Fatalf("rate limits were not backfilled: %v", got)
+	}
+}

@@ -225,3 +225,36 @@ func TestLatestProvidersKeepsClaudePrimaryWhenCodexIsNewer(t *testing.T) {
 		t.Fatalf("Codex selection = %+v", codex)
 	}
 }
+
+func TestLatestProvidersBackfillsHookOnlySession(t *testing.T) {
+	now := time.Now()
+	fiveHour := 12.0
+	snapshots := []model.Snapshot{
+		{
+			Provider:   "claude",
+			CapturedAt: now.Add(-time.Hour),
+			Session:    model.Session{ID: "terminal"},
+			Model:      model.Model{ID: "claude-opus-5"},
+			RateLimits: model.RateLimits{FiveHour: model.RateWindow{UsedPercentage: &fiveHour}},
+		},
+		{
+			Provider:   "claude",
+			CapturedAt: now,
+			Session:    model.Session{ID: "vscode"},
+			Activity:   model.Activity{State: model.ActivityBuilding, UpdatedAt: now},
+		},
+	}
+	claude, codex := LatestProviders(snapshots)
+	if codex != nil {
+		t.Fatalf("Codex selection = %+v, want none", codex)
+	}
+	if claude == nil || claude.Session.ID != "vscode" || claude.Activity.State != model.ActivityBuilding {
+		t.Fatalf("Claude selection = %+v", claude)
+	}
+	if got := claude.RateLimits.FiveHour.UsedPercentage; got == nil || *got != fiveHour {
+		t.Fatalf("rate limits were not backfilled: %v", got)
+	}
+	if claude.Model.ID != "claude-opus-5" {
+		t.Fatalf("model was not backfilled: %+v", claude.Model)
+	}
+}

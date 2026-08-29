@@ -130,17 +130,20 @@ func (r *Relay) logFailure(key string, err error) {
 }
 
 func latestProviders(snapshots []model.Snapshot) []model.Snapshot {
-	latest := make(map[string]model.Snapshot)
+	groups := make(map[string][]model.Snapshot)
 	for _, snapshot := range snapshots {
 		key := providerKey(snapshot)
-		current, ok := latest[key]
-		if !ok || model.SnapshotIsNewer(snapshot, current) {
-			latest[key] = snapshot
-		}
+		groups[key] = append(groups[key], snapshot)
 	}
-	selected := make([]model.Snapshot, 0, len(latest))
-	for _, snapshot := range latest {
-		selected = append(selected, snapshot)
+	selected := make([]model.Snapshot, 0, len(groups))
+	for _, group := range groups {
+		// Newest snapshot per provider, with any usage fields it lacks
+		// backfilled — a VS Code session only ever writes activity, so
+		// without this the Pi would receive a snapshot of nothing but a
+		// mascot state and blank every number on the dashboard.
+		if snapshot, ok := model.LatestWithUsage(group); ok {
+			selected = append(selected, snapshot)
+		}
 	}
 	return selected
 }

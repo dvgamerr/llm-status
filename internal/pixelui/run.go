@@ -135,23 +135,27 @@ func renderFrame(loader SnapshotLoader, screen Screen, renderer *Renderer, confi
 }
 
 // LatestProviders keeps Claude and Codex independent so a newer Codex event
-// cannot displace the Claude-first dashboard.
+// cannot displace the Claude-first dashboard. Within each provider it
+// returns the newest snapshot with any usage numbers it lacks backfilled
+// from the newest snapshot that has them, so a hook-only VS Code session
+// still drives the mascot without blanking the panel (model.LatestWithUsage).
 func LatestProviders(snapshots []model.Snapshot) (*model.Snapshot, *model.Snapshot) {
-	var claude, codex *model.Snapshot
-	for index := range snapshots {
-		snapshot := snapshots[index]
+	var claudeGroup, codexGroup []model.Snapshot
+	for _, snapshot := range snapshots {
 		switch model.CanonicalProvider(snapshot.Provider) {
 		case model.ProviderClaude:
-			if claude == nil || model.SnapshotIsNewer(snapshot, *claude) {
-				selected := snapshot
-				claude = &selected
-			}
+			claudeGroup = append(claudeGroup, snapshot)
 		case model.ProviderCodex:
-			if codex == nil || model.SnapshotIsNewer(snapshot, *codex) {
-				selected := snapshot
-				codex = &selected
-			}
+			codexGroup = append(codexGroup, snapshot)
 		}
 	}
-	return claude, codex
+	return latestWithUsage(claudeGroup), latestWithUsage(codexGroup)
+}
+
+func latestWithUsage(group []model.Snapshot) *model.Snapshot {
+	snapshot, ok := model.LatestWithUsage(group)
+	if !ok {
+		return nil
+	}
+	return &snapshot
 }
