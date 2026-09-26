@@ -9,11 +9,17 @@ import (
 	"syscall"
 
 	"github.com/dvgamerr/llm-status/internal/app"
+	"github.com/dvgamerr/llm-status/internal/envfile"
 	"github.com/dvgamerr/llm-status/internal/service"
 	"github.com/dvgamerr/llm-status/internal/winconsole"
 )
 
 func main() {
+	// Loaded first so PORT/LOG_LEVEL/LOG_FORMAT from a local .env reach every
+	// path below, including the Windows Service branch. Never overrides a
+	// variable already set in the real environment.
+	_ = envfile.LoadDefault()
+
 	// Checked before anything else: the Windows Service Control Manager
 	// expects a service process to call StartServiceCtrlDispatcher almost
 	// immediately, so this can't wait for flag parsing or any other CLI
