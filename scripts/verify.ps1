@@ -95,11 +95,11 @@ try {
     go vet ./...
 
     Write-Host "[11/17] Windows build"
-    $NativeBinary = Join-Path $RepoDir "artifacts\claude-status-verify.exe"
-    go build -trimpath -o $NativeBinary ./cmd/claude-status
+    $NativeBinary = Join-Path $RepoDir "artifacts\llm-status-verify.exe"
+    go build -trimpath -o $NativeBinary ./cmd/llm-status
 
     Write-Host "[12/17] Raspberry Pi 4 linux/arm64 build"
-    $ArmBinary = Join-Path $RepoDir "artifacts\claude-status-linux-arm64"
+    $ArmBinary = Join-Path $RepoDir "artifacts\llm-status-linux-arm64"
     $PreviousCGO = $env:CGO_ENABLED
     $PreviousGOOS = $env:GOOS
     $PreviousGOARCH = $env:GOARCH
@@ -107,7 +107,7 @@ try {
         $env:CGO_ENABLED = "0"
         $env:GOOS = "linux"
         $env:GOARCH = "arm64"
-        go build -trimpath -o $ArmBinary ./cmd/claude-status
+        go build -trimpath -o $ArmBinary ./cmd/llm-status
     }
     finally {
         $env:CGO_ENABLED = $PreviousCGO
@@ -152,15 +152,15 @@ try {
 
     Write-Host "[15/17] Linux package smoke test"
     $PackageDir = Join-Path $RepoDir ("artifacts\packages-" + [guid]::NewGuid().ToString("N"))
-    $env:CLAUDE_STATUS_DIST_DIR = $PackageDir
+    $env:LLM_STATUS_DIST_DIR = $PackageDir
     try {
         & $GitBash scripts/package.sh v0.0.0-verify
-        $Packages = @(Get-ChildItem -LiteralPath $PackageDir -Filter "claude-status_v0.0.0-verify_linux_*.tar.gz")
+        $Packages = @(Get-ChildItem -LiteralPath $PackageDir -Filter "llm-status_v0.0.0-verify_linux_*.tar.gz")
         if ($Packages.Count -ne 2) {
             throw "expected 2 Linux packages, found $($Packages.Count)"
         }
         $Checksums = @(Get-Content -LiteralPath (Join-Path $PackageDir "SHA256SUMS"))
-        if (($Checksums | Where-Object { $_ -match "claude-status_v0.0.0-verify_linux_" }).Count -ne 2) {
+        if (($Checksums | Where-Object { $_ -match "llm-status_v0.0.0-verify_linux_" }).Count -ne 2) {
             throw "SHA256SUMS does not contain both verification packages"
         }
 
@@ -179,7 +179,7 @@ try {
         }
     }
     finally {
-        Remove-Item Env:CLAUDE_STATUS_DIST_DIR -ErrorAction SilentlyContinue
+        Remove-Item Env:LLM_STATUS_DIST_DIR -ErrorAction SilentlyContinue
         if (Test-Path -LiteralPath $PackageDir) {
             Remove-Item -LiteralPath $PackageDir -Recurse -Force
         }

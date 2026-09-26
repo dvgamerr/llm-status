@@ -1,4 +1,4 @@
-// Package app implements claude-status command dispatch and lifecycle.
+// Package app implements llm-status command dispatch and lifecycle.
 package app
 
 import (
@@ -14,22 +14,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/activity"
-	"github.com/dvgamerr/claude-status/internal/codex"
-	"github.com/dvgamerr/claude-status/internal/dashboard"
-	"github.com/dvgamerr/claude-status/internal/framebuffer"
-	"github.com/dvgamerr/claude-status/internal/ingest"
-	"github.com/dvgamerr/claude-status/internal/limitio"
-	"github.com/dvgamerr/claude-status/internal/logging"
-	"github.com/dvgamerr/claude-status/internal/mirror"
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/pixelui"
-	"github.com/dvgamerr/claude-status/internal/relay"
-	"github.com/dvgamerr/claude-status/internal/state"
-	"github.com/dvgamerr/claude-status/internal/systeminfo"
-	"github.com/dvgamerr/claude-status/internal/touch"
-	"github.com/dvgamerr/claude-status/internal/usage"
-	"github.com/dvgamerr/claude-status/internal/winconsole"
+	"github.com/dvgamerr/llm-status/internal/activity"
+	"github.com/dvgamerr/llm-status/internal/codex"
+	"github.com/dvgamerr/llm-status/internal/dashboard"
+	"github.com/dvgamerr/llm-status/internal/framebuffer"
+	"github.com/dvgamerr/llm-status/internal/ingest"
+	"github.com/dvgamerr/llm-status/internal/limitio"
+	"github.com/dvgamerr/llm-status/internal/logging"
+	"github.com/dvgamerr/llm-status/internal/mirror"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/pixelui"
+	"github.com/dvgamerr/llm-status/internal/relay"
+	"github.com/dvgamerr/llm-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/systeminfo"
+	"github.com/dvgamerr/llm-status/internal/touch"
+	"github.com/dvgamerr/llm-status/internal/usage"
+	"github.com/dvgamerr/llm-status/internal/winconsole"
 )
 
 var (
@@ -96,7 +96,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 	case "preview":
 		return runPreview(args[1:], stderr)
 	case "version", "--version", "-version":
-		if _, err := fmt.Fprintf(stdout, "claude-status %s (commit %s, built %s)\n", Version, Commit, Date); err != nil {
+		if _, err := fmt.Fprintf(stdout, "llm-status %s (commit %s, built %s)\n", Version, Commit, Date); err != nil {
 			return 1
 		}
 		return 0
@@ -106,7 +106,7 @@ func Run(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.
 		}
 		return 0
 	default:
-		if _, err := fmt.Fprintf(stderr, "claude-status: unknown command %q\n\n", args[0]); err != nil {
+		if _, err := fmt.Fprintf(stderr, "llm-status: unknown command %q\n\n", args[0]); err != nil {
 			return 1
 		}
 		if err := printUsage(stderr); err != nil {
@@ -123,7 +123,7 @@ func runIngest(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("ingest", "Usage: claude-status ingest [--state-dir DIR]", stderr)
+	flags := newCommandFlagSet("ingest", "Usage: llm-status ingest [--state-dir DIR]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory used for sanitized snapshots")
 	if exitCode, parsed := parseCommandFlags(flags, args); !parsed {
 		return exitCode
@@ -156,7 +156,7 @@ func runActivity(args []string, stdin io.Reader, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 0
 	}
-	flags := newCommandFlagSet("activity", "Usage: claude-status activity [--state-dir DIR]", stderr)
+	flags := newCommandFlagSet("activity", "Usage: llm-status activity [--state-dir DIR]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory used for sanitized snapshots")
 	if _, parsed := parseCommandFlags(flags, args); !parsed {
 		return 0
@@ -181,7 +181,7 @@ func runActivity(args []string, stdin io.Reader, stderr io.Writer) int {
 // runUsage manually merges the two rate-limit percentages into the target
 // session's stored snapshot, for interfaces (this project has only ever
 // seen the VS Code extension chat panel) where statusLine never fires so
-// claude-status never sees real numbers on its own.
+// llm-status never sees real numbers on its own.
 func runUsage(args []string, stderr io.Writer) int {
 	logger := logging.New(stderr, "usage")
 	defaultDir, err := state.DefaultDir()
@@ -189,7 +189,7 @@ func runUsage(args []string, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("usage", "Usage: claude-status usage --five-hour PCT --seven-day PCT [--five-hour-reset 5h] [--seven-day-reset 168h] [--session ID] [--state-dir DIR]", stderr)
+	flags := newCommandFlagSet("usage", "Usage: llm-status usage --five-hour PCT --seven-day PCT [--five-hour-reset 5h] [--seven-day-reset 168h] [--session ID] [--state-dir DIR]", stderr)
 	fiveHour := flags.Float64("five-hour", -1, "5-hour rate limit used percentage (0-100), required")
 	sevenDay := flags.Float64("seven-day", -1, "7-day rate limit used percentage (0-100), required")
 	fiveHourReset := flags.Duration("five-hour-reset", 5*time.Hour, "time until the 5-hour window resets")
@@ -231,7 +231,7 @@ func runImport(args []string, stdin io.Reader, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("import", "Usage: claude-status import [--state-dir DIR]", stderr)
+	flags := newCommandFlagSet("import", "Usage: llm-status import [--state-dir DIR]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory used for sanitized snapshots")
 	if exitCode, parsed := parseCommandFlags(flags, args); !parsed {
 		return exitCode
@@ -277,7 +277,7 @@ func runCodexNotify(ctx context.Context, args []string, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve codex home")
 		return 1
 	}
-	flags := newCommandFlagSet("codex-notify", "Usage: claude-status codex-notify [flags] NOTIFICATION_JSON", stderr)
+	flags := newCommandFlagSet("codex-notify", "Usage: llm-status codex-notify [flags] NOTIFICATION_JSON", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory used for sanitized snapshots")
 	codexHome := flags.String("codex-home", defaultCodexHome, "Codex home containing session rollouts")
 	forward := flags.String("forward", "", "existing notifier executable to preserve")
@@ -386,10 +386,10 @@ type relayOptions struct {
 func parseRelayOptions(args []string, stderr io.Writer, defaultDir string) (relayOptions, int, bool) {
 	var options relayOptions
 	logger := logging.New(stderr, "relay")
-	flags := newCommandFlagSet("relay", "Usage: claude-status relay --mirror-ssh HOST [--refresh 1s] [--once] [--log-file FILE]", stderr)
+	flags := newCommandFlagSet("relay", "Usage: llm-status relay --mirror-ssh HOST [--refresh 1s] [--once] [--log-file FILE]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory containing sanitized snapshots")
 	mirrorSSH := flags.String("mirror-ssh", "", "SSH host that receives sanitized snapshots")
-	remoteBinary := flags.String("remote-bin", mirror.DefaultRemoteBinary, "claude-status binary on the SSH mirror")
+	remoteBinary := flags.String("remote-bin", mirror.DefaultRemoteBinary, "llm-status binary on the SSH mirror")
 	refresh := flags.Duration("refresh", time.Second, "interval between local snapshot checks")
 	once := flags.Bool("once", false, "send pending snapshots once and exit")
 	logFile := flags.String("log-file", "", "append relay diagnostics to this file")
@@ -457,7 +457,7 @@ func runTUI(ctx context.Context, args []string, stdin io.Reader, stdout, stderr 
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("tui", "Usage: claude-status tui [--state-dir DIR] [--session ID] [--refresh 1s] [--stale-after 15s] [--inline]", stderr)
+	flags := newCommandFlagSet("tui", "Usage: llm-status tui [--state-dir DIR] [--session ID] [--refresh 1s] [--stale-after 15s] [--inline]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory containing sanitized snapshots")
 	sessionID := flags.String("session", "", "initial session ID (defaults to most recent)")
 	refresh := flags.Duration("refresh", time.Second, "dashboard refresh interval")
@@ -503,7 +503,7 @@ func runGFX(ctx context.Context, args []string, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("gfx", "Usage: claude-status gfx [--state-dir DIR] [--refresh 66ms] [--framebuffer /dev/fb0] [--tty /dev/tty1] [--touch-device /dev/input/event0]", stderr)
+	flags := newCommandFlagSet("gfx", "Usage: llm-status gfx [--state-dir DIR] [--refresh 66ms] [--framebuffer /dev/fb0] [--tty /dev/tty1] [--touch-device /dev/input/event0]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory containing sanitized snapshots")
 	refresh := flags.Duration("refresh", time.Second/15, "frame refresh interval (default ~15fps)")
 	staleAfter := flags.Duration("stale-after", 15*time.Second, "age at which a snapshot is marked stale")
@@ -576,7 +576,7 @@ func runPreview(args []string, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("preview", "Usage: claude-status preview [--state-dir DIR] [--output dashboard.png] [--at RFC3339]", stderr)
+	flags := newCommandFlagSet("preview", "Usage: llm-status preview [--state-dir DIR] [--output dashboard.png] [--at RFC3339]", stderr)
 	stateDir := flags.String("state-dir", defaultDir, "directory containing sanitized snapshots")
 	outputPath := flags.String("output", "pixel-dashboard-preview.png", "PNG output path")
 	at := flags.String("at", "", "render as of this RFC3339 timestamp instead of now (for sampling an animated mascot at a specific instant)")
@@ -640,19 +640,19 @@ func printUsage(w io.Writer) error {
 	_, err := fmt.Fprintln(w, `AI Usage Terminal for Raspberry Pi
 
 Usage:
-  claude-status ingest [flags]       Read Claude Code statusLine JSON from stdin
-  claude-status activity [flags]     Read a Claude Code hook event from stdin
-  claude-status usage [flags]        Manually set 5h/7d rate-limit percentages
-  claude-status codex-notify [flags] Read a Codex turn-complete notification
-  claude-status import [flags]       Import one sanitized snapshot
-  claude-status relay [flags]        Retry local snapshot delivery over SSH
-  claude-status service <verb>       Install/remove/start/stop/status the relay as a background service
-  claude-status pi install [flags]   Set up the framebuffer dashboard service on this Raspberry Pi
-  claude-status gfx [flags]          Render the 800x480 framebuffer dashboard
-  claude-status preview [flags]      Save one framebuffer dashboard frame as PNG
-  claude-status tui [flags]          Open the full-screen dashboard
-  claude-status version              Print build information
+  llm-status ingest [flags]       Read Claude Code statusLine JSON from stdin
+  llm-status activity [flags]     Read a Claude Code hook event from stdin
+  llm-status usage [flags]        Manually set 5h/7d rate-limit percentages
+  llm-status codex-notify [flags] Read a Codex turn-complete notification
+  llm-status import [flags]       Import one sanitized snapshot
+  llm-status relay [flags]        Retry local snapshot delivery over SSH
+  llm-status service <verb>       Install/remove/start/stop/status the relay as a background service
+  llm-status pi install [flags]   Set up the framebuffer dashboard service on this Raspberry Pi
+  llm-status gfx [flags]          Render the 800x480 framebuffer dashboard
+  llm-status preview [flags]      Save one framebuffer dashboard frame as PNG
+  llm-status tui [flags]          Open the full-screen dashboard
+  llm-status version              Print build information
 
-Run "claude-status <command> --help" for command flags.`)
+Run "llm-status <command> --help" for command flags.`)
 	return err
 }

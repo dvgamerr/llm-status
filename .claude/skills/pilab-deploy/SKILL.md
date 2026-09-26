@@ -1,18 +1,18 @@
 ---
 name: pilab-deploy
-description: Pushes local claude-status commits to origin, pulls and rebuilds them on the pilab Raspberry Pi over SSH, then restarts the claude-status-tty1 framebuffer service so the physical display picks up the change. Use when the user asks to "deploy to pilab", "push and build on pi", "sync the dashboard to pi", "reload tty1", "อัปเดต dashboard บน pi", or "push แล้ว build ที่ pi".
+description: Pushes local llm-status commits to origin, pulls and rebuilds them on the pilab Raspberry Pi over SSH, then restarts the llm-status-tty1 framebuffer service so the physical display picks up the change. Use when the user asks to "deploy to pilab", "push and build on pi", "sync the dashboard to pi", "reload tty1", "อัปเดต dashboard บน pi", or "push แล้ว build ที่ pi".
 ---
 
 # Pi Lab Deploy
 
-Deploys this repo's `claude-status` binary to the Raspberry Pi `pilab` and
+Deploys this repo's `llm-status` binary to the Raspberry Pi `pilab` and
 reloads the display service that runs it. Four steps: verify local state,
 push, pull+build on pilab, restart+verify the service.
 
 ## Critical
 
 - `pilab` has no keyboard. All control goes through `ssh pilab` and
-  `systemctl` — never send signals directly to the `claude-status` process
+  `systemctl` — never send signals directly to the `llm-status` process
   and never try to control `/dev/tty1` by typing into some other terminal.
   `Restart=always` means killing the process just respawns it; the service
   is the thing to stop/start/restart. (See the project's `CLAUDE.md`
@@ -54,9 +54,9 @@ stop — see Troubleshooting. Don't retry with `--force`.
 ssh pilab "cd ~/.lab && git pull --ff-only && bash scripts/install.sh"
 ```
 
-`scripts/install.sh` with no arguments builds `./cmd/claude-status` using
+`scripts/install.sh` with no arguments builds `./cmd/llm-status` using
 the Pi's own Go toolchain (`go build`) and installs the result to
-`~/.local/bin/claude-status` — the exact path the systemd service execs.
+`~/.local/bin/llm-status` — the exact path the systemd service execs.
 If `go build` fails, the script exits non-zero before installing anything;
 report the compiler error to the user and stop. Do not restart the service
 on a failed build (the old binary stays in place, which is correct —
@@ -65,8 +65,8 @@ nothing to undo).
 ### Step 4: Reload the tty1 service and verify
 
 ```
-ssh pilab "sudo systemctl restart claude-status-tty1.service"
-ssh pilab "systemctl --no-pager --full status claude-status-tty1.service"
+ssh pilab "sudo systemctl restart llm-status-tty1.service"
+ssh pilab "systemctl --no-pager --full status llm-status-tty1.service"
 ```
 
 Confirm the status output shows `Active: active (running)` with a start
@@ -129,8 +129,8 @@ skill from Step 2.
 ### Service won't reach `active (running)` after restart
 
 Cause: build succeeded but the binary fails against the real
-`/dev/fb0`/`/dev/tty1` (behavior can differ from `claude-status preview` on
+`/dev/fb0`/`/dev/tty1` (behavior can differ from `llm-status preview` on
 a dev machine).
 
-Solution: `ssh pilab "journalctl -u claude-status-tty1.service -n 50 --no-pager"`
+Solution: `ssh pilab "journalctl -u llm-status-tty1.service -n 50 --no-pager"`
 and report what it shows; ask before making further changes.

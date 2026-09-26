@@ -1,4 +1,4 @@
-// Command claude-status ingests provider usage and renders local dashboards.
+// Command llm-status ingests provider usage and renders local dashboards.
 package main
 
 import (
@@ -8,12 +8,18 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dvgamerr/claude-status/internal/app"
-	"github.com/dvgamerr/claude-status/internal/service"
-	"github.com/dvgamerr/claude-status/internal/winconsole"
+	"github.com/dvgamerr/llm-status/internal/app"
+	"github.com/dvgamerr/llm-status/internal/envfile"
+	"github.com/dvgamerr/llm-status/internal/service"
+	"github.com/dvgamerr/llm-status/internal/winconsole"
 )
 
 func main() {
+	// Loaded first so PORT/LOG_LEVEL/LOG_FORMAT from a local .env reach every
+	// path below, including the Windows Service branch. Never overrides a
+	// variable already set in the real environment.
+	_ = envfile.LoadDefault()
+
 	// Checked before anything else: the Windows Service Control Manager
 	// expects a service process to call StartServiceCtrlDispatcher almost
 	// immediately, so this can't wait for flag parsing or any other CLI
@@ -25,7 +31,7 @@ func main() {
 		winconsole.HideServiceConsole()
 		err := service.RunAsService(app.RelayServiceName, func(ctx context.Context) error {
 			if code := app.Run(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); code != 0 {
-				return fmt.Errorf("claude-status exited with code %d", code)
+				return fmt.Errorf("llm-status exited with code %d", code)
 			}
 			return nil
 		})

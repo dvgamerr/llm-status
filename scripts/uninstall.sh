@@ -2,8 +2,8 @@
 set -eu
 
 PREFIX=${PREFIX:-"$HOME/.local"}
-DESTINATION="$PREFIX/bin/claude-status"
-STATE_DIR=${CLAUDE_STATUS_STATE_DIR:-"${XDG_CACHE_HOME:-$HOME/.cache}/claude-status"}
+DESTINATION="$PREFIX/bin/llm-status"
+STATE_DIR=${LLM_STATUS_STATE_DIR:-"${XDG_CACHE_HOME:-$HOME/.cache}/llm-status"}
 
 if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != "--purge" ]; }; then
   echo "usage: $0 [--purge]" >&2
@@ -18,8 +18,8 @@ if [ "$#" -eq 1 ] && [ "$1" = "--purge" ]; then
       exit 1
       ;;
   esac
-  if [ "$(basename -- "$NORMALIZED_STATE_DIR")" != "claude-status" ]; then
-    echo "refusing to purge a directory not named claude-status: $STATE_DIR" >&2
+  if [ "$(basename -- "$NORMALIZED_STATE_DIR")" != "llm-status" ]; then
+    echo "refusing to purge a directory not named llm-status: $STATE_DIR" >&2
     exit 1
   fi
 fi

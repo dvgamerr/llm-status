@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dvgamerr/claude-status/internal/service"
+	"github.com/dvgamerr/llm-status/internal/service"
 )
 
 func withServiceFakes(t *testing.T, install func(service.Config) error, remove, start, stop func(string) error, status func(string) (service.State, error)) {

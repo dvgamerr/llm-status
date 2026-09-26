@@ -13,7 +13,7 @@ func TestValidateName(t *testing.T) {
 		value   string
 		wantErr bool
 	}{
-		{"valid", "claude-status-relay", false},
+		{"valid", "llm-status-relay", false},
 		{"valid with dots and at", "claude.status@1", false},
 		{"empty", "", true},
 		{"whitespace only", "   ", true},
@@ -65,7 +65,7 @@ func TestPlatformOperationsValidateNamesBeforeExternalCalls(t *testing.T) {
 }
 
 func TestValidateConfig(t *testing.T) {
-	valid := Config{Name: "claude-status_relay@1", DisplayName: "Relay", Description: "safe", Args: []string{"relay", "--once"}}
+	valid := Config{Name: "llm-status_relay@1", DisplayName: "Relay", Description: "safe", Args: []string{"relay", "--once"}}
 	if err := validateConfig(valid); err != nil {
 		t.Fatalf("valid config error = %v", err)
 	}

@@ -14,12 +14,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/atomicfile"
-	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/atomicfile"
+	"github.com/dvgamerr/llm-status/internal/model"
 )
 
 const (
-	appDirectory = "claude-status"
+	appDirectory = "llm-status"
 	latestFile   = "latest.json"
 
 	// A reader can land mid-rename on Windows: writeAtomic's os.Rename onto
@@ -39,7 +39,7 @@ type Store struct {
 
 // DefaultDir resolves the configured or platform-default state directory.
 func DefaultDir() (string, error) {
-	if override := strings.TrimSpace(os.Getenv("CLAUDE_STATUS_STATE_DIR")); override != "" {
+	if override := strings.TrimSpace(os.Getenv("LLM_STATUS_STATE_DIR")); override != "" {
 		return filepath.Clean(override), nil
 	}
 	cacheDir, err := os.UserCacheDir()

@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/limitio"
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/winconsole"
+	"github.com/dvgamerr/llm-status/internal/limitio"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/winconsole"
 )
 
 // DefaultRemoteBinary is the conventional Raspberry Pi installation path.
-const DefaultRemoteBinary = "/home/pi/.local/bin/claude-status"
+const DefaultRemoteBinary = "/home/pi/.local/bin/llm-status"
 
 var (
 	hostPattern      = regexp.MustCompile(`^[A-Za-z0-9._@:-]+$`)

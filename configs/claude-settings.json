@@ -1,28 +1,28 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "~/.local/bin/claude-status ingest",
+    "command": "~/.local/bin/llm-status ingest",
     "padding": 1,
     "refreshInterval": 5
   },
   "hooks": {
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ],
     "PreToolUse": [
-      { "matcher": "*", "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "matcher": "*", "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ],
     "Stop": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ],
     "Notification": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ],
     "SubagentStart": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ],
     "SubagentStop": [
-      { "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }
+      { "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }
     ]
   }
 }

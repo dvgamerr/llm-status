@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/sanitize"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/sanitize"
 )
 
 const (
