@@ -190,21 +190,20 @@ func NewHandler(upstreams map[string]string, logger zerolog.Logger, exampleDir s
 }
 
 func newReverseProxy(prefix string, target *url.URL, logger zerolog.Logger, exampleDir string) *httputil.ReverseProxy {
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	baseDirector := proxy.Director
-	proxy.Director = func(req *http.Request) {
-		req.URL.Path = strings.TrimPrefix(req.URL.Path, prefix)
-		if !strings.HasPrefix(req.URL.Path, "/") {
-			req.URL.Path = "/" + req.URL.Path
+	proxy := &httputil.ReverseProxy{}
+	proxy.Rewrite = func(pr *httputil.ProxyRequest) {
+		pr.Out.URL.Path = strings.TrimPrefix(pr.Out.URL.Path, prefix)
+		if !strings.HasPrefix(pr.Out.URL.Path, "/") {
+			pr.Out.URL.Path = "/" + pr.Out.URL.Path
 		}
-		baseDirector(req)
-		// The default director leaves req.Host as the client's original
-		// "127.0.0.1:PORT" Host header; without this, the upstream would
-		// receive that instead of its own hostname and could reject or
-		// misroute the request.
-		req.Host = target.Host
+		pr.SetURL(target)
+		// SetURL already clears Out.Host so the Transport falls back to
+		// Out.URL.Host, but this is set explicitly to document the intent:
+		// the client's original "127.0.0.1:PORT" Host header must never
+		// reach the upstream, which could reject or misroute the request.
+		pr.Out.Host = target.Host
 
-		captureRequestExample(exampleDir, prefix, req, logger)
+		captureRequestExample(exampleDir, prefix, pr.Out, logger)
 	}
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		captureResponseExample(exampleDir, prefix, resp, logger)
