@@ -1,4 +1,4 @@
-// Command claude-status ingests provider usage and renders local dashboards.
+// Command llm-status ingests provider usage and renders local dashboards.
 package main
 
 import (
@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dvgamerr/claude-status/internal/app"
-	"github.com/dvgamerr/claude-status/internal/service"
-	"github.com/dvgamerr/claude-status/internal/winconsole"
+	"github.com/dvgamerr/llm-status/internal/app"
+	"github.com/dvgamerr/llm-status/internal/service"
+	"github.com/dvgamerr/llm-status/internal/winconsole"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 		winconsole.HideServiceConsole()
 		err := service.RunAsService(app.RelayServiceName, func(ctx context.Context) error {
 			if code := app.Run(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); code != 0 {
-				return fmt.Errorf("claude-status exited with code %d", code)
+				return fmt.Errorf("llm-status exited with code %d", code)
 			}
 			return nil
 		})
