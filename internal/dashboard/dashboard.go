@@ -13,8 +13,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/x/ansi"
-	statusmodel "github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/systeminfo"
+	statusmodel "github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/systeminfo"
 )
 
 // Config controls terminal refresh, staleness, selection, and screen mode.
@@ -361,7 +361,7 @@ func (m Model) waitingFrame(now time.Time, width, height int) string {
 		frameLine(centerRendered(labelStyle.Render("No Claude or Codex snapshot is available yet"), inner), width),
 		frameLine("", width),
 		frameLine(labelStyle.Render("STATUSLINE COMMAND"), width),
-		frameLine(titleStyle.Render("~/.local/bin/claude-status ingest"), width),
+		frameLine(titleStyle.Render("~/.local/bin/llm-status ingest"), width),
 		frameLine("", width),
 		separator(width),
 		frameLine(labelStyle.Render("PI HEALTH"), width),

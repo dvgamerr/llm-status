@@ -43,25 +43,25 @@ func TestSystemctlRealExecSuccess(t *testing.T) {
 
 func TestSystemctlRealExecFailureWithOutput(t *testing.T) {
 	writeFakeSystemctl(t, 1, "", "permission denied")
-	err := systemctl("enable", "--now", "claude-status-test")
+	err := systemctl("enable", "--now", "llm-status-test")
 	if err == nil || !strings.Contains(err.Error(), "permission denied") {
 		t.Fatalf("systemctl() error = %v, want it to mention the command output", err)
 	}
-	if !strings.Contains(err.Error(), "--user enable --now claude-status-test") {
+	if !strings.Contains(err.Error(), "--user enable --now llm-status-test") {
 		t.Fatalf("systemctl() error = %v, want it to mention the --user argv", err)
 	}
 }
 
 func TestSystemctlRealExecFailureNoOutput(t *testing.T) {
 	writeFakeSystemctl(t, 1, "", "")
-	if err := systemctl("stop", "claude-status-test"); err == nil {
+	if err := systemctl("stop", "llm-status-test"); err == nil {
 		t.Fatal("systemctl() error = nil, want non-nil")
 	}
 }
 
 func TestSystemdStateRealExec(t *testing.T) {
 	writeFakeSystemctl(t, 0, "active", "")
-	state, err := systemdState("claude-status-test")
+	state, err := systemdState("llm-status-test")
 	if err != nil {
 		t.Fatalf("systemdState() error = %v", err)
 	}
@@ -72,7 +72,7 @@ func TestSystemdStateRealExec(t *testing.T) {
 
 func TestSystemdStateRealExecFailure(t *testing.T) {
 	writeFakeSystemctl(t, 3, "failed", "")
-	state, err := systemdState("claude-status-test")
+	state, err := systemdState("llm-status-test")
 	if err == nil {
 		t.Fatal("systemdState() error = nil, want non-nil")
 	}
@@ -103,7 +103,7 @@ func TestLinuxInstallFormatsAndWritesSafeUnit(t *testing.T) {
 		calls = append(calls, strings.Join(args, " "))
 		return nil
 	})
-	cfg := Config{Name: "claude-status-test", Description: "Status 100%", Args: []string{"relay", "$HOME", "a'b"}}
+	cfg := Config{Name: "llm-status-test", Description: "Status 100%", Args: []string{"relay", "$HOME", "a'b"}}
 	if err := Install(cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -118,14 +118,14 @@ func TestLinuxInstallFormatsAndWritesSafeUnit(t *testing.T) {
 			t.Fatalf("unit does not contain %q:\n%s", want, unit)
 		}
 	}
-	if strings.Join(calls, "|") != "daemon-reload|enable --now claude-status-test" {
+	if strings.Join(calls, "|") != "daemon-reload|enable --now llm-status-test" {
 		t.Fatalf("systemctl calls = %q", calls)
 	}
 }
 
 func TestLinuxRemoveStartAndStop(t *testing.T) {
 	home := t.TempDir()
-	path := filepath.Join(home, ".config", "systemd", "user", "claude-status-test.service")
+	path := filepath.Join(home, ".config", "systemd", "user", "llm-status-test.service")
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -137,13 +137,13 @@ func TestLinuxRemoveStartAndStop(t *testing.T) {
 		calls = append(calls, strings.Join(args, " "))
 		return nil
 	})
-	if err := Start("claude-status-test"); err != nil {
+	if err := Start("llm-status-test"); err != nil {
 		t.Fatal(err)
 	}
-	if err := Stop("claude-status-test"); err != nil {
+	if err := Stop("llm-status-test"); err != nil {
 		t.Fatal(err)
 	}
-	if err := Remove("claude-status-test"); err != nil {
+	if err := Remove("llm-status-test"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
@@ -157,10 +157,10 @@ func TestLinuxRemoveStartAndStop(t *testing.T) {
 func TestLinuxStatus(t *testing.T) {
 	home := t.TempDir()
 	useLinuxServiceFakes(t, home, "/bin/status", func(...string) error { return nil })
-	if state, err := Status("claude-status-test"); err != nil || state != StateNotInstalled {
+	if state, err := Status("llm-status-test"); err != nil || state != StateNotInstalled {
 		t.Fatalf("missing Status() = %v, %v", state, err)
 	}
-	path, err := unitPath("claude-status-test")
+	path, err := unitPath("llm-status-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,15 +173,15 @@ func TestLinuxStatus(t *testing.T) {
 	oldQuery := querySystemdState
 	defer func() { querySystemdState = oldQuery }()
 	querySystemdState = func(string) (string, error) { return "active", nil }
-	if state, err := Status("claude-status-test"); err != nil || state != StateRunning {
+	if state, err := Status("llm-status-test"); err != nil || state != StateRunning {
 		t.Fatalf("active Status() = %v, %v", state, err)
 	}
 	querySystemdState = func(string) (string, error) { return "failed", errors.New("exit 3") }
-	if state, err := Status("claude-status-test"); err != nil || state != StateStopped {
+	if state, err := Status("llm-status-test"); err != nil || state != StateStopped {
 		t.Fatalf("failed Status() = %v, %v", state, err)
 	}
 	querySystemdState = func(string) (string, error) { return "transport error", errors.New("exit 1") }
-	if _, err := Status("claude-status-test"); err == nil {
+	if _, err := Status("llm-status-test"); err == nil {
 		t.Fatal("expected unknown status error")
 	}
 }

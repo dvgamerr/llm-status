@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/state"
 )
 
 func TestRunPersistsSanitizedSnapshotAndWritesStatusLine(t *testing.T) {

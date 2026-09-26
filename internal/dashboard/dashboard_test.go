@@ -11,8 +11,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	statusmodel "github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/systeminfo"
+	statusmodel "github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/systeminfo"
 )
 
 type fakeLoader struct {

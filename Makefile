@@ -28,10 +28,10 @@ vet:
 check: fmt tidy staticcheck vuln test coverage vet build-pi
 
 build:
-	go build -trimpath -o bin/claude-status ./cmd/claude-status
+	go build -trimpath -o bin/llm-status ./cmd/llm-status
 
 build-pi:
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o bin/claude-status-linux-arm64 ./cmd/claude-status
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o bin/llm-status-linux-arm64 ./cmd/llm-status
 
 package:
 	bash scripts/package.sh $${VERSION:?set VERSION, for example VERSION=v0.1.0}

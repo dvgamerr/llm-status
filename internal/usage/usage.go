@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/sanitize"
-	"github.com/dvgamerr/claude-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/sanitize"
+	"github.com/dvgamerr/llm-status/internal/state"
 )
 
 // Run loads the target snapshot (by session ID, or the most recently

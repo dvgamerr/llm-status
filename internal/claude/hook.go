@@ -9,7 +9,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/model"
 )
 
 const maxHookInputBytes = 256 << 10

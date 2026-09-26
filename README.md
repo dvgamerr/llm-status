@@ -1,4 +1,4 @@
-# claude-status
+# llm-status
 
 Native pixel dashboard สำหรับดู Claude Code และ Codex usage บน Raspberry Pi 4 โดยรับ
 ข้อมูลจาก Claude `statusLine` หรือ Codex turn notification + local rollout metadata
@@ -24,35 +24,35 @@ Desktop, Chromium หรือ X/Wayland จึงควบคุม typography,
 
 ## สิ่งที่โปรแกรมทำ
 
-- `claude-status ingest` อ่าน Claude JSON จาก stdin, sanitize, เขียน state แบบ atomic
+- `llm-status ingest` อ่าน Claude JSON จาก stdin, sanitize, เขียน state แบบ atomic
   แล้วพิมพ์ status line สั้นกลับให้ Claude Code
-- `claude-status activity` อ่าน Claude Code hook event (`UserPromptSubmit`,
+- `llm-status activity` อ่าน Claude Code hook event (`UserPromptSubmit`,
   `PreToolUse`, `Stop`, `Notification`, `SubagentStart`, `SubagentStop`) จาก stdin แล้วอัปเดตสถานะ
   working/idle/waiting-approval ของ session นั้น โดยไม่แตะ field อื่นและไม่เก็บ
   ข้อความ hook ดิบไว้เลย ใช้ขับ animation ของ mascot บนหน้าจอ
-- `claude-status usage --five-hour PCT --seven-day PCT` เขียนแค่ 5h/7d limit
+- `llm-status usage --five-hour PCT --seven-day PCT` เขียนแค่ 5h/7d limit
   ทับ session ล่าสุด (หรือ `--session ID` เจาะจง) โดยไม่แตะ field อื่น — ใช้ตอน
   `statusLine` ไม่ยิงจริง (เท่าที่เจอ ยิงได้แค่จาก CLI terminal ไม่ยิงจาก
   Claude Code แบบ VS Code extension) เอาไว้กรอกเลขจากหน้า Account & Usage มือ
-- `claude-status codex-notify` รับ Codex turn-complete notification แล้วอ่านเฉพาะ
+- `llm-status codex-notify` รับ Codex turn-complete notification แล้วอ่านเฉพาะ
   model, context/token usage และ 5-hour/7-day usage จาก rollout ของ thread นั้น
-- `claude-status import` รับเฉพาะ sanitized snapshot schema สำหรับเครื่อง Pi
-- `claude-status relay` เป็น process แยกที่อ่าน snapshot ล่าสุดจาก local state,
+- `llm-status import` รับเฉพาะ sanitized snapshot schema สำหรับเครื่อง Pi
+- `llm-status relay` เป็น process แยกที่อ่าน snapshot ล่าสุดจาก local state,
   ส่งไป Pi ผ่าน SSH และ retry อัตโนมัติเมื่อเครือข่ายขาด
-- `claude-status service install|remove|start|stop|status` ติดตั้ง relay ให้รัน
+- `llm-status service install|remove|start|stop|status` ติดตั้ง relay ให้รัน
   เป็น background service — คำสั่งเดียวกันทำงานเหมือนกันบน Windows (Windows
   Service จริง), Linux (`systemd --user`) และ macOS (launchd `LaunchAgent`)
-- `claude-status pi install` เขียนและเปิดใช้งาน systemd unit ของ dashboard บน
+- `llm-status pi install` เขียนและเปิดใช้งาน systemd unit ของ dashboard บน
   Raspberry Pi เอง ชี้ไปที่ path ของ binary ปัจจุบันโดยตรง (รองรับ `go install`
   โดยไม่ต้อง clone repo)
-- `claude-status gfx` เปิด native framebuffer dashboard 800×480, animate ที่ 66ms (~15fps)
+- `llm-status gfx` เปิด native framebuffer dashboard 800×480, animate ที่ 66ms (~15fps)
   และเลือก snapshot ล่าสุดของ Claude/Codex แยกกันเพื่อให้ Claude เป็นหน้าหลักเสมอ
   จอเป็น touchscreen จริง แตะแล้วจะเห็น ripple จาง ๆ ตรงจุดที่แตะ (`--touch-device`
   ปรับ evdev device ได้ ใส่ค่าว่างเพื่อปิด) เป็น feedback อย่างเดียว ไม่ใช่ปุ่มกด
-- `claude-status preview` render frame เดียวกันเป็น PNG สำหรับ visual QA
+- `llm-status preview` render frame เดียวกันเป็น PNG สำหรับ visual QA
 - quota ที่ provider ไม่ส่งจะแสดง unavailable; Codex account ที่ระบุ unlimited
   จะแสดง `UNMETERED` แทนการสร้างเปอร์เซ็นต์ขึ้นเอง
-- `claude-status tui` ยังเก็บไว้เป็น fallback สำหรับเครื่องที่ไม่มี framebuffer
+- `llm-status tui` ยังเก็บไว้เป็น fallback สำหรับเครื่องที่ไม่มี framebuffer
 - แสดง `LIVE`/`STALE` ชัดเจน ป้องกันการเข้าใจ snapshot เก่าว่าเป็นข้อมูลสด
 - รองรับ field ที่หาย, เป็น `null` และ field ใหม่ที่โปรแกรมยังไม่รู้จัก
 
@@ -66,14 +66,14 @@ Desktop, Chromium หรือ X/Wayland จึงควบคุม typography,
    input, sanitize ผ่าน allowlist แล้ว **เขียนแค่ local state แบบ atomic**
    (temp file + fsync + rename) จบแล้วก็ออก — ไม่เปิด network เองและไม่รอ SSH;
    เวลาที่ใช้มีเฉพาะการ decode และเขียนไฟล์ local ที่จำเป็น
-2. **Relay** (`claude-status relay`) — process ระยะยาวตัวเดียวที่ watch local
+2. **Relay** (`llm-status relay`) — process ระยะยาวตัวเดียวที่ watch local
    state directory เดียวกันนั้น เจอ snapshot ที่เปลี่ยน (เทียบ fingerprint SHA-256
    ของ sanitized content)
    ก็ส่งไป Pi ผ่าน SSH โดย retry เองเมื่อเครือข่ายขาดหรือ Pi ปิดอยู่ชั่วคราว
    เป็นเจ้าของ SSH transport เพียงจุดเดียวในทั้งระบบ ปลายทางเสมอคือ
-   `claude-status import` บน Pi ซึ่งรับเฉพาะ `model.Snapshot` schema ที่รู้จัก
+   `llm-status import` บน Pi ซึ่งรับเฉพาะ `model.Snapshot` schema ที่รู้จัก
    และ reject field แปลกปลอมทันที
-3. **Renderer** (`claude-status gfx` บน Pi) — loop เดียวที่อ่าน state
+3. **Renderer** (`llm-status gfx` บน Pi) — loop เดียวที่อ่าน state
    directory ของตัวเอง (ที่ `import` เขียนไว้), เลือก snapshot ล่าสุดของ
    Claude กับ Codex แยกกัน (Claude เป็นหลักเสมอ ต่อให้ Codex event ใหม่กว่า),
    แล้ว composite เฟรมด้วย `internal/pixelui` วาดตรงลง `/dev/fb0` ทุก
@@ -99,11 +99,11 @@ Claude Code บน Pi เครื่องเดียวกัน ควรใ
 
 ```bash
 uname -m                         # ควรได้ aarch64
-go install github.com/dvgamerr/claude-status/cmd/claude-status@latest
-sudo $(go env GOPATH)/bin/claude-status pi install
+go install github.com/dvgamerr/llm-status/cmd/llm-status@latest
+sudo $(go env GOPATH)/bin/llm-status pi install
 ```
 
-`pi install` เขียน systemd unit `claude-status-tty1.service` ชี้ไปที่ path ของ
+`pi install` เขียน systemd unit `llm-status-tty1.service` ชี้ไปที่ path ของ
 binary ปัจจุบันโดยตรง (ไม่ hardcode `/home/pi/.local/bin` เหมือนเดิมอีกต่อไป)
 ตั้ง `User`/`Group`/`WorkingDirectory` ตามผู้ใช้ที่เรียก (`$SUDO_USER`, override ได้
 ด้วย `--user NAME`) แล้ว `systemctl daemon-reload` + `enable --now` ให้ในคำสั่งเดียว
@@ -114,10 +114,10 @@ binary ปัจจุบันโดยตรง (ไม่ hardcode `/home/pi/
 ถ้าไม่อยากพึ่ง Go module proxy ก็ยังใช้วิธี clone + build เองได้เหมือนเดิม:
 
 ```bash
-git clone https://github.com/dvgamerr/claude-status
-cd claude-status
-bash scripts/install.sh          # หรือ: bash scripts/install.sh ./claude-status (มี binary cross-build แล้ว)
-sudo ~/.local/bin/claude-status pi install
+git clone https://github.com/dvgamerr/llm-status
+cd llm-status
+bash scripts/install.sh          # หรือ: bash scripts/install.sh ./llm-status (มี binary cross-build แล้ว)
+sudo ~/.local/bin/llm-status pi install
 ```
 
 จากนั้นเพิ่มใน `~/.claude/settings.json` (หรือ project settings) ถ้า Claude Code
@@ -127,17 +127,17 @@ sudo ~/.local/bin/claude-status pi install
 {
   "statusLine": {
     "type": "command",
-    "command": "~/.local/bin/claude-status ingest",
+    "command": "~/.local/bin/llm-status ingest",
     "padding": 1,
     "refreshInterval": 5
   },
   "hooks": {
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }],
-    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }],
-    "Stop": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }],
-    "Notification": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }],
-    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }],
-    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/claude-status activity" }] }]
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }],
+    "PreToolUse": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }],
+    "Notification": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }],
+    "SubagentStart": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }],
+    "SubagentStop": [{ "hooks": [{ "type": "command", "command": "~/.local/bin/llm-status activity" }] }]
   }
 }
 ```
@@ -164,7 +164,7 @@ session เท่านั้น
 เปิด dashboard:
 
 ```bash
-claude-status gfx --framebuffer /dev/fb0 --tty /dev/tty1
+llm-status gfx --framebuffer /dev/fb0 --tty /dev/tty1
 ```
 
 ตัวเลือกสำคัญ:
@@ -180,29 +180,29 @@ claude-status gfx --framebuffer /dev/fb0 --tty /dev/tty1
 ตั้ง path ด้วย environment variable ได้เช่นกัน:
 
 ```bash
-export CLAUDE_STATUS_STATE_DIR=/var/lib/claude-status
+export LLM_STATUS_STATE_DIR=/var/lib/llm-status
 ```
 
 ## ทดลองด้วย mock data
 
 ```bash
-claude-status ingest < examples/statusline-input.json
-claude-status preview --output dashboard.png
+llm-status ingest < examples/statusline-input.json
+llm-status preview --output dashboard.png
 ```
 
 ใน Nushell ใช้ `open --raw` และ external-command marker `^`:
 
 ```nu
-open --raw examples/statusline-input.json | ^go run ./cmd/claude-status ingest
+open --raw examples/statusline-input.json | ^go run ./cmd/llm-status ingest
 ```
 
-การรัน `claude-status ingest` เปล่า ๆ ไม่มี stdin จะ error ตามตั้งใจ เพราะตอนใช้งานจริง
+การรัน `llm-status ingest` เปล่า ๆ ไม่มี stdin จะ error ตามตั้งใจ เพราะตอนใช้งานจริง
 Claude Code เป็นผู้ pipe JSON เข้ามาให้อัตโนมัติ
 
-state จะอยู่ที่ `${XDG_CACHE_HOME:-~/.cache}/claude-status/` บน Linux:
+state จะอยู่ที่ `${XDG_CACHE_HOME:-~/.cache}/llm-status/` บน Linux:
 
 ```text
-claude-status/
+llm-status/
 ├── sessions/
 │   └── <sha256-prefix>.json
 └── latest.json
@@ -233,15 +233,15 @@ directory listing ข้อมูล cost เป็นค่าประมา�
 `ingest`/`activity`/`usage`/`codex-notify` เขียนแค่ local state บนเครื่องต้นทาง
 และไม่เปิด network เอง — ตัว **relay** เป็น process ระยะยาวตัวเดียวที่เป็นเจ้าของ
 SSH transport ทั้งหมด คอย watch local state แล้วส่งเฉพาะ snapshot ที่ sanitize
-แล้วไปเรียก `/home/pi/.local/bin/claude-status import` บน Pi ห้าม copy credential
+แล้วไปเรียก `/home/pi/.local/bin/llm-status import` บน Pi ห้าม copy credential
 หรือส่ง JSON ดิบจาก provider ไปยัง Pi เด็ดขาด
 
 ติดตั้ง relay ให้รันเป็น background service — คำสั่งเดียวกัน ทำงานเหมือนกันทั้ง
 Windows, Linux, และ macOS:
 
 ```bash
-go install github.com/dvgamerr/claude-status/cmd/claude-status@latest
-claude-status service install --mirror-ssh pilab
+go install github.com/dvgamerr/llm-status/cmd/llm-status@latest
+llm-status service install --mirror-ssh pilab
 ```
 
 `service install` ใช้ service manager ของแต่ละ OS โดยตรง (ไม่ผ่านตัวกลางอื่น):
@@ -252,12 +252,12 @@ claude-status service install --mirror-ssh pilab
 | Linux   | `systemd --user` unit                  | ไม่ต้อง root                      |
 | macOS   | launchd `LaunchAgent`                  | ไม่ต้อง root                      |
 
-คำสั่งอื่นในกลุ่มเดียวกัน: `claude-status service status|start|stop|remove`
-(ใช้ชื่อบริการ `claude-status-relay` เดียวกันทุก OS) รัน `install` ซ้ำได้เสมอ —
+คำสั่งอื่นในกลุ่มเดียวกัน: `llm-status service status|start|stop|remove`
+(ใช้ชื่อบริการ `llm-status-relay` เดียวกันทุก OS) รัน `install` ซ้ำได้เสมอ —
 ถ้ามี instance เดิมรันอยู่จะ stop แล้ว restart ให้เองด้วย binary/flag ใหม่
 
 บน Windows ยังมีสคริปต์ `install-windows.ps1` ที่ทำครบในคำสั่งเดียว (ติดตั้ง
-binary ที่ `-BinaryPath` ระบุหรือ `bin/claude-status.exe` + เพิ่ม hook ใน `~/.claude/settings.json` + wrap `notify` ใน
+binary ที่ `-BinaryPath` ระบุหรือ `bin/llm-status.exe` + เพิ่ม hook ใน `~/.claude/settings.json` + wrap `notify` ใน
 `~/.codex/config.toml` + เรียก `service install` ให้ตอนท้าย):
 
 ```powershell
@@ -265,7 +265,7 @@ pwsh -File scripts/verify.ps1
 pwsh -File scripts/install-windows.ps1 -MirrorHost pilab
 ```
 
-installer จะสำรองไฟล์เดิมไว้ก่อนแก้เสมอ (`.claude-status-backup-<timestamp>`)
+installer จะสำรองไฟล์เดิมไว้ก่อนแก้เสมอ (`.llm-status-backup-<timestamp>`)
 บน Linux/macOS ยังต้องแก้ `~/.claude/settings.json` และ `~/.codex/config.toml`
 ตามตัวอย่าง JSON ด้านบนเอง ก่อนรัน `service install`
 
@@ -324,14 +324,14 @@ scanline เพื่อลด allocation ใน render loop ~15 FPS โดย�
 ```bash
 go test ./...
 go vet ./...
-go build -o bin/claude-status ./cmd/claude-status
+go build -o bin/llm-status ./cmd/llm-status
 ```
 
 Cross-build สำหรับ Pi 4:
 
 ```bash
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
-  go build -trimpath -o bin/claude-status-linux-arm64 ./cmd/claude-status
+  go build -trimpath -o bin/llm-status-linux-arm64 ./cmd/llm-status
 ```
 
 สร้าง tarballs สำหรับ Linux ARM64/AMD64 พร้อม checksum:

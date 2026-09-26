@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/image/font"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/systeminfo"
-	"github.com/dvgamerr/claude-status/internal/touch"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/systeminfo"
+	"github.com/dvgamerr/llm-status/internal/touch"
 )
 
 func baseSnapshot(now time.Time) model.Snapshot {

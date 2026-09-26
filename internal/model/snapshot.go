@@ -37,7 +37,7 @@ const (
 )
 
 // Snapshot is the deliberately small, sanitized representation persisted by
-// claude-status. It must never contain prompts, transcripts, credentials, or
+// llm-status. It must never contain prompts, transcripts, credentials, or
 // arbitrary fields copied from Claude or Codex provider input.
 type Snapshot struct {
 	SchemaVersion int       `json:"schema_version"`

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/model"
 )
 
 const maxSnapshotBytes = 256 << 10

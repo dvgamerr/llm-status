@@ -1,4 +1,4 @@
-module github.com/dvgamerr/claude-status
+module github.com/dvgamerr/llm-status
 
 go 1.26.0
 

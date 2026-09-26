@@ -15,10 +15,10 @@ import (
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/svganim"
-	"github.com/dvgamerr/claude-status/internal/systeminfo"
-	"github.com/dvgamerr/claude-status/internal/touch"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/svganim"
+	"github.com/dvgamerr/llm-status/internal/systeminfo"
+	"github.com/dvgamerr/llm-status/internal/touch"
 )
 
 const (

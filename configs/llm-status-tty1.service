@@ -10,8 +10,8 @@ Group=pi
 SupplementaryGroups=video input
 WorkingDirectory=/home/pi
 Environment=HOME=/home/pi
-ExecStartPre=/usr/bin/test -x /home/pi/.local/bin/claude-status
-ExecStart=/home/pi/.local/bin/claude-status gfx --refresh 66ms --framebuffer /dev/fb0 --tty /dev/tty1
+ExecStartPre=/usr/bin/test -x /home/pi/.local/bin/llm-status
+ExecStart=/home/pi/.local/bin/llm-status gfx --refresh 66ms --framebuffer /dev/fb0 --tty /dev/tty1
 Restart=always
 RestartSec=2
 StandardInput=tty

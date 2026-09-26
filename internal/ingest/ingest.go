@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/claude"
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/claude"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/state"
 )
 
 // Run decodes, persists, and formats one Claude statusLine event.

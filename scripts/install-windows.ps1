@@ -1,15 +1,15 @@
 param(
     [string]$BinaryPath = "",
-    [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "Programs\claude-status"),
+    [string]$InstallDir = (Join-Path $env:LOCALAPPDATA "Programs\llm-status"),
     [string]$MirrorHost = "pilab",
-    [string]$RemoteBinary = "/home/pi/.local/bin/claude-status"
+    [string]$RemoteBinary = "/home/pi/.local/bin/llm-status"
 )
 
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 $RepoDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
-# The relay itself now runs as a real Windows Service (`claude-status
+# The relay itself now runs as a real Windows Service (`llm-status
 # service install`, internal/service/manager_windows.go) instead of a
 # Scheduled Task — the same command also works unchanged on Linux
 # (systemd --user) and macOS (launchd). `service install` stops and
@@ -17,7 +17,7 @@ $RepoDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 # no separate "stop before replacing the binary" step needed here anymore.
 
 if ([string]::IsNullOrWhiteSpace($BinaryPath)) {
-    $BinaryPath = Join-Path $RepoDir "bin\claude-status.exe"
+    $BinaryPath = Join-Path $RepoDir "bin\llm-status.exe"
 }
 $BinaryPath = (Resolve-Path -LiteralPath $BinaryPath).Path
 $Principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -31,7 +31,7 @@ if ($RemoteBinary -notmatch '^[A-Za-z0-9_./~-]+$') {
     throw "invalid remote binary path: $RemoteBinary"
 }
 
-$InstalledBinary = Join-Path $InstallDir "claude-status.exe"
+$InstalledBinary = Join-Path $InstallDir "llm-status.exe"
 $ClaudeSettingsPath = Join-Path $env:USERPROFILE ".claude\settings.json"
 if (Test-Path -LiteralPath $ClaudeSettingsPath) {
     $ClaudeSettings = Get-Content -Raw -LiteralPath $ClaudeSettingsPath | ConvertFrom-Json -AsHashtable
@@ -88,11 +88,11 @@ if ($ExistingNotify.Count -ge 2 -and $ExistingNotify[0] -eq $InstalledBinary -an
             $ForwardArguments += $ExistingNotify[++$Index]
         }
         else {
-            throw "existing claude-status Codex notify wrapper contains an unsupported or incomplete argument: $($ExistingNotify[$Index])"
+            throw "existing llm-status Codex notify wrapper contains an unsupported or incomplete argument: $($ExistingNotify[$Index])"
         }
     }
     if ($ForwardArguments.Count -gt 0 -and [string]::IsNullOrWhiteSpace($ForwardProgram)) {
-        throw "existing claude-status Codex notify wrapper has forward arguments but no forward program"
+        throw "existing llm-status Codex notify wrapper has forward arguments but no forward program"
     }
 }
 elseif ($ExistingNotify.Count -gt 0) {
@@ -103,12 +103,17 @@ elseif ($ExistingNotify.Count -gt 0) {
 }
 
 # Installs from before the Windows Service era registered the relay as a
-# Scheduled Task of the same name, and nothing has ever removed it on
-# upgrade. That task runs with LogonType Interactive, so unlike the service
-# it lives in the desktop session and every ssh delivery it makes opens a
-# console window on screen; it also races the service for the same state
-# directory and log file. Clear it out before the binary is replaced, since
-# its running process would otherwise hold a lock on the file.
+# Scheduled Task named "claude-status-relay" (the tool's name at the time,
+# before this tool was renamed to llm-status), and nothing has ever removed
+# it on upgrade. That task runs with LogonType Interactive, so unlike the
+# service it lives in the desktop session and every ssh delivery it makes
+# opens a console window on screen; it also races the service for the same
+# state directory and log file. Clear it out before the binary is replaced,
+# since its running process would otherwise hold a lock on the file. The
+# task and process names here are deliberately the pre-rename literals, not
+# $RelayServiceName/$InstalledBinary — a real leftover from that era is
+# named "claude-status-relay"/"claude-status.exe" regardless of what this
+# tool is called today.
 $LegacyTask = Get-ScheduledTask -TaskName "claude-status-relay" -ErrorAction SilentlyContinue
 if ($LegacyTask) {
     Get-CimInstance Win32_Process -Filter "Name='claude-status.exe'" |
@@ -119,7 +124,7 @@ if ($LegacyTask) {
 }
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
-$StagedBinary = Join-Path $InstallDir ("claude-status." + [guid]::NewGuid().ToString("N") + ".exe")
+$StagedBinary = Join-Path $InstallDir ("llm-status." + [guid]::NewGuid().ToString("N") + ".exe")
 Copy-Item -LiteralPath $BinaryPath -Destination $StagedBinary
 try {
     $BinaryInstalled = $false
@@ -151,7 +156,7 @@ $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 function Backup-ConfigFile {
     param([string]$Path)
     if (Test-Path -LiteralPath $Path) {
-        $BackupPath = "$Path.claude-status-backup-$Timestamp"
+        $BackupPath = "$Path.llm-status-backup-$Timestamp"
         Copy-Item -LiteralPath $Path -Destination $BackupPath
         return $BackupPath
     }
@@ -207,7 +212,7 @@ function Set-ClaudeStatusHook {
     # re-add it fresh; leave every other tool's hook group untouched.
     $KeptGroups = @($ExistingGroups | Where-Object {
         $GroupHooks = @($_.hooks)
-        -not ($GroupHooks | Where-Object { $_.command -like '*claude-status*" activity*' })
+        -not ($GroupHooks | Where-Object { $_.command -like '*llm-status*" activity*' })
     })
 
     $NewGroup = [ordered]@{

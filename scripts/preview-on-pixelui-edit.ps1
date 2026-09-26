@@ -23,7 +23,7 @@ if ($filePath -notmatch "internal[\\/]pixelui") {
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Push-Location $repoRoot
 try {
-    go run ./cmd/claude-status preview *> $null
+    go run ./cmd/llm-status preview *> $null
 }
 catch {
 }

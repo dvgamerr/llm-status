@@ -12,16 +12,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/atomicfile"
-	"github.com/dvgamerr/claude-status/internal/logging"
-	"github.com/dvgamerr/claude-status/internal/systemdunit"
+	"github.com/dvgamerr/llm-status/internal/atomicfile"
+	"github.com/dvgamerr/llm-status/internal/logging"
+	"github.com/dvgamerr/llm-status/internal/systemdunit"
 )
 
 // tty1UnitName is the systemd unit that owns /dev/tty1 on the Pi — see
-// configs/claude-status-tty1.service, which `pi install` supersedes with a
+// configs/llm-status-tty1.service, which `pi install` supersedes with a
 // version whose paths/user are resolved at install time instead of
 // hardcoded to /home/pi.
-const tty1UnitName = "claude-status-tty1.service"
+const tty1UnitName = "llm-status-tty1.service"
 
 // systemdUnitDir and geteuid are overridden in tests so runPiInstall's
 // root-owned branch can be exercised against a temp directory instead of
@@ -34,11 +34,11 @@ var (
 )
 
 // runPi is the display-side counterpart to `service` (which sets up the
-// relay on the machine running Claude Code/Codex): `claude-status pi
+// relay on the machine running Claude Code/Codex): `llm-status pi
 // install` sets up the framebuffer dashboard on the Raspberry Pi itself.
 func runPi(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		if _, err := fmt.Fprintln(stderr, "Usage: claude-status pi <install> [flags]"); err != nil {
+		if _, err := fmt.Fprintln(stderr, "Usage: llm-status pi <install> [flags]"); err != nil {
 			return 1
 		}
 		return 2
@@ -47,7 +47,7 @@ func runPi(args []string, stdout, stderr io.Writer) int {
 	case "install":
 		return runPiInstall(args[1:], stdout, stderr)
 	case "help", "--help", "-h":
-		if _, err := fmt.Fprintln(stdout, "Usage: claude-status pi install [flags]"); err != nil {
+		if _, err := fmt.Fprintln(stdout, "Usage: llm-status pi install [flags]"); err != nil {
 			return 1
 		}
 		return 0
@@ -60,7 +60,7 @@ func runPi(args []string, stdout, stderr io.Writer) int {
 
 // runPiInstall writes and enables the tty1 framebuffer service, pointing it
 // at wherever this binary actually is — which lets `go install .../cmd/
-// claude-status@latest` followed by `claude-status pi install` work with no
+// llm-status@latest` followed by `llm-status pi install` work with no
 // git checkout at all, unlike the old scripts/install.sh + manual
 // `sudo systemctl enable` flow.
 func runPiInstall(args []string, stdout, stderr io.Writer) int {
@@ -154,7 +154,7 @@ type piInstallOptions struct {
 func parsePiInstallOptions(args []string, stderr io.Writer) (piInstallOptions, int, bool) {
 	var options piInstallOptions
 	logger := logging.New(stderr, "pi install")
-	flags := newCommandFlagSet("pi install", "Usage: claude-status pi install [--user NAME] [--refresh 66ms] [--framebuffer /dev/fb0] [--tty /dev/tty1] [--touch-device /dev/input/event0]", stderr)
+	flags := newCommandFlagSet("pi install", "Usage: llm-status pi install [--user NAME] [--refresh 66ms] [--framebuffer /dev/fb0] [--tty /dev/tty1] [--touch-device /dev/input/event0]", stderr)
 	userName := flags.String("user", "", "user the dashboard service runs as (default: $SUDO_USER, or the current user)")
 	refresh := flags.Duration("refresh", time.Second/15, "frame refresh interval")
 	framebufferPath := flags.String("framebuffer", "/dev/fb0", "Linux framebuffer device")
@@ -245,7 +245,7 @@ WantedBy=multi-user.target
 }
 
 // reExecWithSudo re-invokes this same subcommand under sudo so the user can
-// run one command (`claude-status pi install`) instead of having to
+// run one command (`llm-status pi install`) instead of having to
 // remember to prefix it themselves.
 func reExecWithSudo(exePath string, args []string, stderr io.Writer) int {
 	sudoArgs := append([]string{exePath, "pi", "install"}, args...)

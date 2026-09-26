@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dvgamerr/claude-status/internal/atomicfile"
-	"github.com/dvgamerr/claude-status/internal/systemdunit"
+	"github.com/dvgamerr/llm-status/internal/atomicfile"
+	"github.com/dvgamerr/llm-status/internal/systemdunit"
 )
 
 var (

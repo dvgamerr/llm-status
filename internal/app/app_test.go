@@ -15,9 +15,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/model"
-	"github.com/dvgamerr/claude-status/internal/service"
-	"github.com/dvgamerr/claude-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/service"
+	"github.com/dvgamerr/llm-status/internal/state"
 )
 
 func TestRunIngestEndToEnd(t *testing.T) {
@@ -202,7 +202,7 @@ func TestRunPreviewWritesPNG(t *testing.T) {
 
 func TestRunHelpAndUnknownCommand(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	if exitCode := Run(context.Background(), nil, strings.NewReader(""), &stdout, &stderr); exitCode != 0 || !strings.Contains(stdout.String(), "claude-status ingest") {
+	if exitCode := Run(context.Background(), nil, strings.NewReader(""), &stdout, &stderr); exitCode != 0 || !strings.Contains(stdout.String(), "llm-status ingest") {
 		t.Fatalf("help: exit=%d stdout=%q", exitCode, stdout.String())
 	}
 	stdout.Reset()
@@ -214,7 +214,7 @@ func TestRunHelpAndUnknownCommand(t *testing.T) {
 func TestRunVersion(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	exitCode := Run(context.Background(), []string{"version"}, strings.NewReader(""), &stdout, &stderr)
-	if exitCode != 0 || !strings.Contains(stdout.String(), "claude-status dev") || stderr.Len() != 0 {
+	if exitCode != 0 || !strings.Contains(stdout.String(), "llm-status dev") || stderr.Len() != 0 {
 		t.Fatalf("version: exit=%d stdout=%q stderr=%q", exitCode, stdout.String(), stderr.String())
 	}
 }
@@ -226,38 +226,38 @@ func TestRunValidatesCommandFlags(t *testing.T) {
 		wantExit int
 		wantText string
 	}{
-		{name: "ingest help", args: []string{"ingest", "--help"}, wantExit: 0, wantText: "Usage: claude-status ingest"},
+		{name: "ingest help", args: []string{"ingest", "--help"}, wantExit: 0, wantText: "Usage: llm-status ingest"},
 		{name: "ingest positional", args: []string{"ingest", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "ingest empty state", args: []string{"ingest", "--state-dir", ""}, wantExit: 1, wantText: "state directory is empty"},
-		{name: "import help", args: []string{"import", "--help"}, wantExit: 0, wantText: "Usage: claude-status import"},
+		{name: "import help", args: []string{"import", "--help"}, wantExit: 0, wantText: "Usage: llm-status import"},
 		{name: "import positional", args: []string{"import", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
-		{name: "codex notify help", args: []string{"codex-notify", "--help"}, wantExit: 0, wantText: "Usage: claude-status codex-notify"},
+		{name: "codex notify help", args: []string{"codex-notify", "--help"}, wantExit: 0, wantText: "Usage: llm-status codex-notify"},
 		{name: "codex notify missing payload", args: []string{"codex-notify"}, wantExit: 2, wantText: "expected one"},
-		{name: "tui help", args: []string{"tui", "--help"}, wantExit: 0, wantText: "Usage: claude-status tui"},
+		{name: "tui help", args: []string{"tui", "--help"}, wantExit: 0, wantText: "Usage: llm-status tui"},
 		{name: "tui positional", args: []string{"tui", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "tui refresh too fast", args: []string{"tui", "--refresh", "100ms"}, wantExit: 2, wantText: "at least 250ms"},
 		{name: "tui stale invalid", args: []string{"tui", "--stale-after", "0s"}, wantExit: 2, wantText: "greater than zero"},
 		{name: "tui duration invalid", args: []string{"tui", "--refresh", "invalid"}, wantExit: 2, wantText: "invalid value"},
-		{name: "gfx help", args: []string{"gfx", "--help"}, wantExit: 0, wantText: "Usage: claude-status gfx"},
+		{name: "gfx help", args: []string{"gfx", "--help"}, wantExit: 0, wantText: "Usage: llm-status gfx"},
 		{name: "gfx positional", args: []string{"gfx", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "gfx refresh too fast", args: []string{"gfx", "--refresh", "5ms"}, wantExit: 2, wantText: "at least 20ms"},
-		{name: "preview help", args: []string{"preview", "--help"}, wantExit: 0, wantText: "Usage: claude-status preview"},
+		{name: "preview help", args: []string{"preview", "--help"}, wantExit: 0, wantText: "Usage: llm-status preview"},
 		{name: "preview positional", args: []string{"preview", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
-		{name: "usage help", args: []string{"usage", "--help"}, wantExit: 0, wantText: "Usage: claude-status usage"},
+		{name: "usage help", args: []string{"usage", "--help"}, wantExit: 0, wantText: "Usage: llm-status usage"},
 		{name: "usage positional", args: []string{"usage", "--five-hour", "1", "--seven-day", "1", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "usage missing flags", args: []string{"usage"}, wantExit: 2, wantText: "--five-hour and --seven-day are required"},
 		{name: "usage invalid reset", args: []string{"usage", "--five-hour", "1", "--seven-day", "1", "--five-hour-reset", "0s"}, wantExit: 2, wantText: "must be positive"},
 		{name: "usage missing snapshot", args: []string{"usage", "--state-dir", t.TempDir(), "--five-hour", "1", "--seven-day", "1"}, wantExit: 1, wantText: "load existing snapshot"},
-		{name: "relay help", args: []string{"relay", "--help"}, wantExit: 0, wantText: "Usage: claude-status relay"},
+		{name: "relay help", args: []string{"relay", "--help"}, wantExit: 0, wantText: "Usage: llm-status relay"},
 		{name: "relay missing host", args: []string{"relay", "--once"}, wantExit: 2, wantText: "--mirror-ssh is required"},
 		{name: "relay positional", args: []string{"relay", "--mirror-ssh", "pilab", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "relay refresh too fast", args: []string{"relay", "--mirror-ssh", "pilab", "--refresh", "10ms"}, wantExit: 2, wantText: "at least 100ms"},
-		{name: "service install help", args: []string{"service", "install", "--help"}, wantExit: 0, wantText: "Usage: claude-status service install"},
+		{name: "service install help", args: []string{"service", "install", "--help"}, wantExit: 0, wantText: "Usage: llm-status service install"},
 		{name: "service install invalid flag", args: []string{"service", "install", "--invalid"}, wantExit: 2, wantText: "flag provided but not defined"},
 		{name: "service install missing host", args: []string{"service", "install"}, wantExit: 2, wantText: "--mirror-ssh is required"},
 		{name: "service install refresh too fast", args: []string{"service", "install", "--mirror-ssh", "pilab", "--refresh", "10ms"}, wantExit: 2, wantText: "at least 100ms"},
 		{name: "service install positional", args: []string{"service", "install", "--mirror-ssh", "pilab", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
-		{name: "pi install help", args: []string{"pi", "install", "--help"}, wantExit: 0, wantText: "Usage: claude-status pi install"},
+		{name: "pi install help", args: []string{"pi", "install", "--help"}, wantExit: 0, wantText: "Usage: llm-status pi install"},
 		{name: "pi install refresh too fast", args: []string{"pi", "install", "--refresh", "1ms"}, wantExit: 2, wantText: "at least 20ms"},
 		{name: "pi install positional", args: []string{"pi", "install", "unexpected"}, wantExit: 2, wantText: "unexpected positional"},
 		{name: "ingest legacy mirror removed", args: []string{"ingest", "--mirror-ssh", "pilab"}, wantExit: 2, wantText: "flag provided but not defined"},
@@ -306,11 +306,11 @@ func TestRunDispatchesPiServiceGFXAndPreviewErrors(t *testing.T) {
 		wantExit int
 		wantText string
 	}{
-		{[]string{"pi"}, 2, "Usage: claude-status pi"},
-		{[]string{"pi", "help"}, 0, "Usage: claude-status pi install"},
+		{[]string{"pi"}, 2, "Usage: llm-status pi"},
+		{[]string{"pi", "help"}, 0, "Usage: llm-status pi install"},
 		{[]string{"pi", "unknown"}, 2, "unknown subcommand"},
-		{[]string{"service"}, 2, "Usage: claude-status service"},
-		{[]string{"service", "help"}, 0, "Usage: claude-status service"},
+		{[]string{"service"}, 2, "Usage: llm-status service"},
+		{[]string{"service", "help"}, 0, "Usage: llm-status service"},
 		{[]string{"service", "unknown"}, 2, "unknown subcommand"},
 		{[]string{"gfx", "--touch-device", ""}, 1, "open framebuffer"},
 		{[]string{"preview", "--output", filepath.Join(t.TempDir(), "missing", "out.png")}, 1, "create output"},
@@ -470,7 +470,7 @@ func (w *failAfterNWriter) Write(p []byte) (int, error) {
 // state.DefaultDir to return an error without needing a --state-dir flag.
 func clearStateDirEnv(t *testing.T) {
 	t.Helper()
-	for _, name := range []string{"CLAUDE_STATUS_STATE_DIR", "LocalAppData", "HOME", "XDG_CACHE_HOME", "home"} {
+	for _, name := range []string{"LLM_STATUS_STATE_DIR", "LocalAppData", "HOME", "XDG_CACHE_HOME", "home"} {
 		t.Setenv(name, "")
 	}
 }
@@ -478,7 +478,7 @@ func clearStateDirEnv(t *testing.T) {
 func TestRunTopLevelHelpVariantsAndOutputFailure(t *testing.T) {
 	for _, args := range [][]string{{"help"}, {"--help"}, {"-h"}} {
 		var stdout, stderr bytes.Buffer
-		if exitCode := Run(context.Background(), args, strings.NewReader(""), &stdout, &stderr); exitCode != 0 || !strings.Contains(stdout.String(), "claude-status ingest") {
+		if exitCode := Run(context.Background(), args, strings.NewReader(""), &stdout, &stderr); exitCode != 0 || !strings.Contains(stdout.String(), "llm-status ingest") {
 			t.Fatalf("Run(%v) exit=%d stdout=%q", args, exitCode, stdout.String())
 		}
 	}

@@ -9,7 +9,7 @@ import (
 	"image/draw"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/svganim"
+	"github.com/dvgamerr/llm-status/internal/svganim"
 	"github.com/srwiley/oksvg"
 	"github.com/srwiley/rasterx"
 	xdraw "golang.org/x/image/draw"

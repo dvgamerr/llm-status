@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/model"
 )
 
 func TestSaveAndLoadMultipleSessions(t *testing.T) {
@@ -130,7 +130,7 @@ func TestSaveRejectsMissingCaptureTime(t *testing.T) {
 
 func TestDefaultDirHonorsEnvironment(t *testing.T) {
 	want := filepath.Join(t.TempDir(), "custom")
-	t.Setenv("CLAUDE_STATUS_STATE_DIR", want)
+	t.Setenv("LLM_STATUS_STATE_DIR", want)
 	got, err := DefaultDir()
 	if err != nil {
 		t.Fatal(err)
@@ -165,7 +165,7 @@ func TestLoadLatestRejectsOversizedSnapshot(t *testing.T) {
 }
 
 func TestDefaultDirWithoutOverrideUsesUserCacheDir(t *testing.T) {
-	t.Setenv("CLAUDE_STATUS_STATE_DIR", "")
+	t.Setenv("LLM_STATUS_STATE_DIR", "")
 	cacheDir, cacheErr := os.UserCacheDir()
 	if cacheErr != nil {
 		t.Skipf("no user cache directory available on this platform: %v", cacheErr)
@@ -181,7 +181,7 @@ func TestDefaultDirWithoutOverrideUsesUserCacheDir(t *testing.T) {
 }
 
 func TestDefaultDirTreatsBlankOverrideAsUnset(t *testing.T) {
-	t.Setenv("CLAUDE_STATUS_STATE_DIR", "   \t  ")
+	t.Setenv("LLM_STATUS_STATE_DIR", "   \t  ")
 	cacheDir, cacheErr := os.UserCacheDir()
 	if cacheErr != nil {
 		t.Skipf("no user cache directory available on this platform: %v", cacheErr)
@@ -197,7 +197,7 @@ func TestDefaultDirTreatsBlankOverrideAsUnset(t *testing.T) {
 }
 
 func TestDefaultDirPropagatesUserCacheDirError(t *testing.T) {
-	t.Setenv("CLAUDE_STATUS_STATE_DIR", "")
+	t.Setenv("LLM_STATUS_STATE_DIR", "")
 	switch runtime.GOOS {
 	case "windows":
 		t.Setenv("LocalAppData", "")

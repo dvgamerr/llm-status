@@ -7,16 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dvgamerr/claude-status/internal/logging"
-	"github.com/dvgamerr/claude-status/internal/mirror"
-	"github.com/dvgamerr/claude-status/internal/service"
-	"github.com/dvgamerr/claude-status/internal/state"
+	"github.com/dvgamerr/llm-status/internal/logging"
+	"github.com/dvgamerr/llm-status/internal/mirror"
+	"github.com/dvgamerr/llm-status/internal/service"
+	"github.com/dvgamerr/llm-status/internal/state"
 )
 
 // RelayServiceName identifies the background service across all three
 // platforms: the Windows Service name, the systemd --user unit name (sans
 // ".service"), and the launchd LaunchAgent label.
-const RelayServiceName = "claude-status-relay"
+const RelayServiceName = "llm-status-relay"
 
 // These are overridden in tests so runService/runServiceInstall can be
 // exercised without actually installing/starting/stopping a real
@@ -29,12 +29,12 @@ var (
 	serviceStatus  = service.Status
 )
 
-// runService is the one `claude-status service <verb>` entry point for
+// runService is the one `llm-status service <verb>` entry point for
 // Windows/Linux/macOS alike — see internal/service for how each OS's own
 // service manager is driven underneath.
 func runService(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		if _, err := fmt.Fprintln(stderr, "Usage: claude-status service <install|remove|start|stop|status> [flags]"); err != nil {
+		if _, err := fmt.Fprintln(stderr, "Usage: llm-status service <install|remove|start|stop|status> [flags]"); err != nil {
 			return 1
 		}
 		return 2
@@ -68,7 +68,7 @@ func runService(args []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	case "help", "--help", "-h":
-		if _, err := fmt.Fprintln(stdout, "Usage: claude-status service <install|remove|start|stop|status> [flags]"); err != nil {
+		if _, err := fmt.Fprintln(stdout, "Usage: llm-status service <install|remove|start|stop|status> [flags]"); err != nil {
 			return 1
 		}
 		return 0
@@ -89,9 +89,9 @@ func runServiceInstall(args []string, stderr io.Writer) int {
 		logger.Error().Err(err).Msg("resolve state directory")
 		return 1
 	}
-	flags := newCommandFlagSet("service install", "Usage: claude-status service install --mirror-ssh HOST [--remote-bin PATH] [--refresh 1s] [--state-dir DIR] [--log-file FILE]", stderr)
+	flags := newCommandFlagSet("service install", "Usage: llm-status service install --mirror-ssh HOST [--remote-bin PATH] [--refresh 1s] [--state-dir DIR] [--log-file FILE]", stderr)
 	mirrorSSH := flags.String("mirror-ssh", "", "SSH host that receives sanitized snapshots")
-	remoteBinary := flags.String("remote-bin", mirror.DefaultRemoteBinary, "claude-status binary on the SSH mirror")
+	remoteBinary := flags.String("remote-bin", mirror.DefaultRemoteBinary, "llm-status binary on the SSH mirror")
 	refresh := flags.Duration("refresh", time.Second, "interval between local snapshot checks")
 	stateDir := flags.String("state-dir", defaultDir, "directory containing sanitized snapshots")
 	logFile := flags.String("log-file", filepath.Join(defaultDir, "relay.log"), "relay diagnostics log file")

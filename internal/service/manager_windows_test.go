@@ -104,12 +104,12 @@ func useFakeManager(t *testing.T, manager *fakeServiceManager) {
 }
 
 func validServiceConfig() Config {
-	return Config{Name: "claude-status-test", DisplayName: "Test", Description: "Test service", Args: []string{"relay", "--once"}}
+	return Config{Name: "llm-status-test", DisplayName: "Test", Description: "Test service", Args: []string{"relay", "--once"}}
 }
 
 func TestServiceBinaryPathEscapesWindowsArguments(t *testing.T) {
-	got := serviceBinaryPath(`C:\Program Files\Claude Status\claude-status.exe`, []string{"relay", `a b`, `quote"here`, ``})
-	want := `"C:\Program Files\Claude Status\claude-status.exe" relay "a b" quote\"here ""`
+	got := serviceBinaryPath(`C:\Program Files\Claude Status\llm-status.exe`, []string{"relay", `a b`, `quote"here`, ``})
+	want := `"C:\Program Files\Claude Status\llm-status.exe" relay "a b" quote\"here ""`
 	if got != want {
 		t.Fatalf("serviceBinaryPath() = %q, want %q", got, want)
 	}
@@ -176,7 +176,7 @@ func TestRemoveStartStopAndStatus(t *testing.T) {
 	t.Run("remove running", func(t *testing.T) {
 		service := &fakeManagedService{state: svc.Running}
 		useFakeManager(t, &fakeServiceManager{service: service})
-		if err := Remove("claude-status-test"); err != nil {
+		if err := Remove("llm-status-test"); err != nil {
 			t.Fatal(err)
 		}
 		if !service.controlled || !service.deleted {
@@ -186,18 +186,18 @@ func TestRemoveStartStopAndStatus(t *testing.T) {
 	t.Run("start stopped", func(t *testing.T) {
 		service := &fakeManagedService{state: svc.Stopped}
 		useFakeManager(t, &fakeServiceManager{service: service})
-		if err := Start("claude-status-test"); err != nil || !service.started {
+		if err := Start("llm-status-test"); err != nil || !service.started {
 			t.Fatalf("Start() error = %v, service=%+v", err, service)
 		}
 	})
 	t.Run("stop running and stopped", func(t *testing.T) {
 		service := &fakeManagedService{state: svc.Running}
 		useFakeManager(t, &fakeServiceManager{service: service})
-		if err := Stop("claude-status-test"); err != nil || !service.controlled {
+		if err := Stop("llm-status-test"); err != nil || !service.controlled {
 			t.Fatalf("Stop() error = %v, service=%+v", err, service)
 		}
 		service.controlled = false
-		if err := Stop("claude-status-test"); err != nil || service.controlled {
+		if err := Stop("llm-status-test"); err != nil || service.controlled {
 			t.Fatalf("second Stop() error = %v, service=%+v", err, service)
 		}
 	})
@@ -205,15 +205,15 @@ func TestRemoveStartStopAndStatus(t *testing.T) {
 		service := &fakeManagedService{state: svc.Running}
 		manager := &fakeServiceManager{service: service}
 		useFakeManager(t, manager)
-		if state, err := Status("claude-status-test"); err != nil || state != StateRunning {
+		if state, err := Status("llm-status-test"); err != nil || state != StateRunning {
 			t.Fatalf("running Status() = %v, %v", state, err)
 		}
 		service.state = svc.Stopped
-		if state, err := Status("claude-status-test"); err != nil || state != StateStopped {
+		if state, err := Status("llm-status-test"); err != nil || state != StateStopped {
 			t.Fatalf("stopped Status() = %v, %v", state, err)
 		}
 		manager.openErr = windows.ERROR_SERVICE_DOES_NOT_EXIST
-		if state, err := Status("claude-status-test"); err != nil || state != StateNotInstalled {
+		if state, err := Status("llm-status-test"); err != nil || state != StateNotInstalled {
 			t.Fatalf("missing Status() = %v, %v", state, err)
 		}
 	})

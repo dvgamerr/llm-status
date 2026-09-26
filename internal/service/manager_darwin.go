@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dvgamerr/claude-status/internal/atomicfile"
+	"github.com/dvgamerr/llm-status/internal/atomicfile"
 )
 
 // macOS runs the relay as a per-user LaunchAgent. `launchctl load/unload`

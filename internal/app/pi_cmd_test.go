@@ -115,7 +115,7 @@ func TestReExecWithSudoSuccess(t *testing.T) {
 	writeFakeExecutable(t, dir, "sudo", 0, "installed", "")
 	isolatePath(t, dir)
 	var stderr bytes.Buffer
-	if exitCode := reExecWithSudo("/opt/claude-status", []string{"--user", "root"}, &stderr); exitCode != 0 {
+	if exitCode := reExecWithSudo("/opt/llm-status", []string{"--user", "root"}, &stderr); exitCode != 0 {
 		t.Fatalf("reExecWithSudo() = %d, stderr = %q", exitCode, stderr.String())
 	}
 }
@@ -125,7 +125,7 @@ func TestReExecWithSudoPropagatesExitCode(t *testing.T) {
 	writeFakeExecutable(t, dir, "sudo", 7, "", "denied")
 	isolatePath(t, dir)
 	var stderr bytes.Buffer
-	if exitCode := reExecWithSudo("/opt/claude-status", nil, &stderr); exitCode != 7 {
+	if exitCode := reExecWithSudo("/opt/llm-status", nil, &stderr); exitCode != 7 {
 		t.Fatalf("reExecWithSudo() = %d, want 7", exitCode)
 	}
 }
@@ -133,7 +133,7 @@ func TestReExecWithSudoPropagatesExitCode(t *testing.T) {
 func TestReExecWithSudoCommandNotFound(t *testing.T) {
 	isolatePath(t, t.TempDir())
 	var stderr bytes.Buffer
-	if exitCode := reExecWithSudo("/opt/claude-status", nil, &stderr); exitCode != 1 {
+	if exitCode := reExecWithSudo("/opt/llm-status", nil, &stderr); exitCode != 1 {
 		t.Fatalf("reExecWithSudo() = %d, want 1 (sudo not found), stderr = %q", exitCode, stderr.String())
 	}
 }

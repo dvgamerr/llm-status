@@ -1,4 +1,4 @@
-// Package service installs claude-status's relay as a background service
+// Package service installs llm-status's relay as a background service
 // using whatever the host OS's own service manager is: a real Windows
 // Service on Windows, a systemd --user unit on Linux, and a launchd
 // LaunchAgent on macOS. One Config and one set of Install/Remove/Start/

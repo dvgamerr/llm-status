@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dvgamerr/claude-status/internal/model"
+	"github.com/dvgamerr/llm-status/internal/model"
 )
 
 // errReader is an io.Reader that always fails, used to exercise the
