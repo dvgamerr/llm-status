@@ -1,0 +1,30 @@
+{
+  "captured_at": "2026-01-01T00:00:00Z",
+  "route": "/anthropic",
+  "method": "POST",
+  "path": "/v1/messages",
+  "headers": {
+    "Accept": "application/json",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Anthropic-Beta": "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14",
+    "Anthropic-Dangerous-Direct-Browser-Access": "true",
+    "Anthropic-Version": "2023-06-01",
+    "Authorization": "REDACTED",
+    "Connection": "keep-alive",
+    "Content-Length": "128",
+    "Content-Type": "application/json",
+    "User-Agent": "claude-cli/2.1.282 (external, cli)",
+    "X-App": "cli",
+    "X-Claude-Code-Session-Id": "00000000-0000-0000-0000-000000000000",
+    "X-Stainless-Arch": "x64",
+    "X-Stainless-Lang": "js",
+    "X-Stainless-Os": "Windows",
+    "X-Stainless-Package-Version": "0.112.1",
+    "X-Stainless-Retry-Count": "0",
+    "X-Stainless-Runtime": "node",
+    "X-Stainless-Runtime-Version": "v26.3.0",
+    "X-Stainless-Timeout": "600"
+  },
+  "body": "{\"model\":\"claude-sonnet-5\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"hi\"}]}]}",
+  "truncated": false
+}
